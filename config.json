@@ -1,0 +1,8 @@
+{
+    "Jwt": {
+        "access_token": "",
+        "refresh_token": "",
+        "JWT_SECRET_KEY": "",
+        "TOKEN_HEADER_KEY": ""
+    }
+}
