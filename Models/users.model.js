@@ -1,15 +1,19 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
-const role = Schema({
-    name: String
+const role = new Schema({
+    name: {
+        type: String,
+        index: true
+    }
 })
 
-const user = Schema({
+const user = new Schema({
     user_id: {
         type: Number,
         require: true,
-        unique: true
+        unique: true,
+        index: true
     },
     username: {
         type: String,
@@ -43,7 +47,7 @@ const user = Schema({
         type: String,
         require: true
     },
-    roles: role,
+    roles: [role],
     is_admin: {
         type: Boolean,
         require: true
@@ -58,16 +62,19 @@ const user = Schema({
     },
     note: String,
     interfaces: String,
-    asset_category: {
-        type: mongoose.Schema.Types.ObjectId,
+    asset_category: [{
+        type: Schema.Types.ObjectId,
         ref: "assetsList"
-    },
-    asset_list: {
-        type: mongoose.Schema.Types.ObjectId,
+    }],
+    asset_list: [{
+        type: Schema.Types.ObjectId,
         ref: "assetData"
-    }
+    }]
 
 
 })
 
-module.exports = mongoose.model('user', user)
+const Role = mongoose.model('role', role)
+const User = mongoose.model('user', user)
+
+module.exports = { Role, User }

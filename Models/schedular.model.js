@@ -1,13 +1,13 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
-const schedule = Schema({
+const schedule = new Schema({
     asset_category: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: mongoose.SchemaTypes.ObjectId,
         ref: 'assetsConfig'
     },
     asset_list: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: mongoose.SchemaTypes.ObjectId,
         ref: 'assetData'
     },
     maintainence_type: {
@@ -27,7 +27,7 @@ const schedule = Schema({
         require: true
     },
     checklist_selection: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: mongoose.SchemaTypes.ObjectId,
         ref: 'checkList'
     }
 })

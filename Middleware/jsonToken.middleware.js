@@ -2,41 +2,49 @@ require('dotenv').config();
 const jwt = require('jsonwebtoken');
 const config = require('../config.json')
 
-
 // Generate JWT Token
 function generateToken(username, role) {
     try {
         let jwtsecretkey = config.Jwt.JWT_SECRET_KEY;
         let data = {
-            date: Date(),
             username: username,
             role: role
         }
-        return token = jwt.sign(data, jwtsecretkey, config.Jwt.access_token);
+        return token = jwt.sign(data, jwtsecretkey, { expiresIn: config.Jwt.access_expires })
     } catch (err) {
         console.log(err);
     }
-
-    res.send(token);
 }
-
 //Validate JWT Token
-function validateToken() {
-    let TokenHeaderKey = config.Jwt.TOKEN_HEADER_KEY;
+function validateToken(token) {
     let jwtSecretKey = config.Jwt.JWT_SECRET_KEY;
+    if (token) {
+        try {
+            const verified = jwt.verify(token, jwtSecretKey);
+            return verified;
 
-    try {
-        const token = req.header(TokenHeaderKey)
-        const verified = jwt.verify(token, jwtSecretKey);
-        if (verified) {
-            return res.send("Successfully Verified");
-        } else {
-            // Access Denied
-            return res.status(401).send(err);
+        } catch (error) {
+            console.log(error.message)
+            throw new Error(error.message)
         }
-    } catch (err) {
-        return res.status(401).send(error);
+
+    } else {
+        return "Token not found"
     }
+
 }
 
-module.exports = { generateToken, validateToken }
+function decodeToken(token) {
+    try {
+        let decode = jwt.decode(token)
+        return decode
+    } catch (error) {
+        throw new Error(error.message)
+
+    }
+
+
+
+}
+
+module.exports = { generateToken, validateToken, decodeToken }

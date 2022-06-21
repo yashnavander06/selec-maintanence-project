@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
-const images = Schema({
+const images = new Schema({
     name: String,
     image: {
         data: Buffer,
@@ -9,7 +9,7 @@ const images = Schema({
     }
 })
 
-const taskList = Schema({
+const taskList = new Schema({
     task: {
         type: String,
         unique: true,
@@ -27,9 +27,9 @@ const taskList = Schema({
     }
 })
 
-const checkList = Schema({
+const checkList = new Schema({
     machine_name: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: mongoose.SchemaTypes.ObjectId,
         ref: 'machineData'
     },
     date: Date,

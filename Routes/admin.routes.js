@@ -1,28 +1,30 @@
 const express = require('express')
 const routers = express.Router();
-const adminModel = require('../Models/admin.model')
+const adminControllers = require('../Controllers/admin.controllers')
+const { checkAuth, checkRole } = require('../Middleware/checkAuth.middleware')
 
-routers.get('/', (req, res) => {
-    res.send("admin page")
-})
+// Get all users
+routers.get('/', checkAuth, adminControllers.getUsers)
 
 routers.get('/profile', (req, res) => {
     res.send("admin profile")
 })
 
-routers.post('/', async(req, res) => {
-    const admindata = new adminModel({
-        fname: req.body.fname,
-        lname: req.body.lname
-    })
-    try {
-        const Adata = await admindata.save();
-        res.json(Adata);
-    } catch (error) {
-        res.json({ message: error });
-    }
+// Add user
+routers.post('/add_user', adminControllers.addUser)
 
-})
+// Update user
+routers.put('/update_user/:id', adminControllers.updateUser)
+
+// Delete User
+
+// Add role
+routers.post('/add_role', adminControllers.addRole)
+
+// Get all roles
+routers.get('/roles', adminControllers.getRoles)
+
+//////////////////////////////////////////////////// Asset Section ///////////////////////////////////////////////////
 
 
 module.exports = routers;

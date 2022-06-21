@@ -1,24 +1,24 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
-const assetData = Schema({
+const assetData = new Schema({
     asset_name: {
         type: String,
-        require: true,
+        // require: true,
         unique: true
     }
 })
 
-const assetsConfig = Schema({
+const assetsConfig = new Schema({
     asset_id: {
         type: Number,
-        require: true,
+        // require: true,
         unique: true
     },
     asset_category: {
         type: String,
         unique: true,
-        require: true
+        // require: true
     },
     asset_list: asset,
     template_master: String

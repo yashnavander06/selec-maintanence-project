@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
-const machineData = Schema({
+const machineData = new Schema({
     machine_internal_code: {
         type: String,
         unique: true,

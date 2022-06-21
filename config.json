@@ -1,8 +1,8 @@
 {
     "Jwt": {
-        "access_token": "",
-        "refresh_token": "",
-        "JWT_SECRET_KEY": "",
-        "TOKEN_HEADER_KEY": ""
+        "access_expires": 480,
+        "refresh_expires": 1200,
+        "JWT_SECRET_KEY": "efed624b326d36889b3d70659aaa4219",
+        "TOKEN_HEADER_KEY": "e66d927418de0bbb9a363392783197ad"
     }
 }

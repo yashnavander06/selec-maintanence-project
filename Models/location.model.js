@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
-const location = Schema({
+const location = new Schema({
     unit_or_building: {
         type: String,
         require: true
