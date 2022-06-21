@@ -1,5 +1,6 @@
 const { User, Role } = require('../Models/users.model')
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcrypt');
+const { json } = require('body-parser');
 
 // get all users
 const getUsers = async(req, res) => {
@@ -54,6 +55,25 @@ const updateUser = async(req, res) => {
 
 }
 
+// Delete user
+const deleteUser = async(req, res) => {
+    try {
+        await User.findByIdAndDelete({ "_id": req.params.id }, (err, result) => {
+            if (result) {
+                return res.status(200).json({ "message": "user deleted successfully" })
+            }
+            if (err) {
+                return res.status(403).json(err)
+            }
+            return res.status(403).json({ "message": "user not found" })
+        })
+
+
+    } catch (error) {
+        return new Error(error)
+    }
+}
+
 // add new role
 const addRole = async(req, res) => {
     const newRole = new Role(req.body)
@@ -76,4 +96,22 @@ const getRoles = async(req, res) => {
         res.json({ message: error });
     }
 }
-module.exports = { getUsers, addUser, updateUser, addRole, getRoles }
+
+// delete role
+const deleteRole = async(req, res) => {
+    try {
+        await Role.findByIdAndDelete({ "_id": req.params.id }, (err, result) => {
+            if (result) {
+                return res.status(200).json({ "message": "role deleted successfully" })
+            }
+            if (err) {
+                return res.status(403).json(err)
+            }
+            return res.status(403).json({ "message": "role not found" })
+        })
+
+    } catch (error) {
+        return new Error(error)
+    }
+}
+module.exports = { getUsers, addUser, updateUser, deleteUser, addRole, getRoles, deleteRole }

@@ -1,15 +1,29 @@
 const { validateToken, decodeToken } = require('../Middleware/jsonToken.middleware')
 
-function checkRole(req, res) {
+function checkRole(role) {
+    return (req, res, next) => {
+        if (req.valid) {
+            try {
+                let tokenRole = req.valid.role
+                if (tokenRole === role) next();
+                else {
+                    res.json('You are not a authorized user')
+                }
+            } catch (error) {
+                res.status(401).json({ error: error.message })
+            }
 
-    if (req.valid) {
-        console.log(req.valid)
+        } else {
+            res.json('Token Data Not Found')
+        }
+
     }
+
 }
 
 function checkAuth(req, res, next) {
     const token = req.header('access-token')
-    if (token !== null) {
+    if (token) {
         try {
             const validate = validateToken(token)
             if (validate) {
