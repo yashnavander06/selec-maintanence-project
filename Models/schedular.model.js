@@ -3,11 +3,11 @@ const Schema = mongoose.Schema
 
 const schedule = new Schema({
     asset_category: {
-        type: Schema.Types.ObjectId,
+        type: mongoose.SchemaTypes.ObjectId,
         ref: 'assetsConfig'
     },
     asset_list: {
-        type: Schema.Types.ObjectId,
+        type: mongoose.SchemaTypes.ObjectId,
         ref: 'assetData'
     },
     maintainence_type: {
@@ -27,7 +27,7 @@ const schedule = new Schema({
         require: true
     },
     checklist_selection: {
-        type: Schema.Types.ObjectId,
+        type: mongoose.SchemaTypes.ObjectId,
         ref: 'checkList'
     }
 })

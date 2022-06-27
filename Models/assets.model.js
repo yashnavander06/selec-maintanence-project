@@ -20,14 +20,10 @@ const assetsConfig = new Schema({
         unique: true,
         // require: true
     },
-    asset_list: [assetData],
-    template_master: {
-        // type: Schema.Types.ObjectId,
-        // ref: "machineData"
-        type: String
-    }
+    asset_list: asset,
+    template_master: String
 })
 
 let assetsconfig = mongoose.model('assetsConfig', assetsConfig);
-let Asset = mongoose.model('assetData', assetData);
-module.exports = { assetsconfig, Asset }
+let asset = mongoose.model('assetData', assetData);
+module.exports = { assetsconfig, asset }

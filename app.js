@@ -21,8 +21,6 @@ const Loginroute = require('./Routes/Login.routes')
 app.use('/login', Loginroute);
 const adminRoutes = require('./Routes/admin.routes')
 app.use('/admin', adminRoutes);
-const DummyRoute = require('./Routes/test.routes')
-app.use('/test', DummyRoute)
 
 // app connection
 const PORT = process.env.PORT || 8080

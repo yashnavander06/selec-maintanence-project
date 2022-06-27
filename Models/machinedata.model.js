@@ -12,11 +12,6 @@ const machineData = new Schema({
         unique: true,
         require: true
     },
-    model_name: {
-        type: String,
-        unique: true,
-        require: true
-    },
     model_number: {
         type: String,
         unique: true,
@@ -29,6 +24,5 @@ const machineData = new Schema({
     type: String
 
 })
-const machinedata = mongoose.model('machineData', machineData)
 
-module.exports = { machinedata }
+module.exports = mongoose.model('machineData', machineData)

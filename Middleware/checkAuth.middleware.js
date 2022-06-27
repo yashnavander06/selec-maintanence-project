@@ -7,14 +7,14 @@ function checkRole(role) {
                 let tokenRole = req.valid.role
                 if (tokenRole === role) next();
                 else {
-                    res.status(401).json({ msg: 'You are not a authorized user' })
+                    res.json('You are not a authorized user')
                 }
             } catch (error) {
                 res.status(401).json({ error: error.message })
             }
 
         } else {
-            res.status(404).json({ msg: 'Token Data Not Found' })
+            res.json('Token Data Not Found')
         }
 
     }
