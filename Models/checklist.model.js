@@ -29,7 +29,7 @@ const taskList = new Schema({
 
 const checkList = new Schema({
     machine_name: {
-        type: mongoose.SchemaTypes.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'machineData'
     },
     date: Date,
@@ -39,9 +39,12 @@ const checkList = new Schema({
 
 let checklist = mongoose.model('checkList', checkList);
 let imageModel = mongoose.model('images', images);
+let tasklist = mongoose.model('tasklist', taskList);
+
 
 
 module.exports = {
     checklist,
-    imageModel
+    imageModel,
+    tasklist
 }
