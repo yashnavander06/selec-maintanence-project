@@ -57,13 +57,13 @@ routers.delete('/delete_assetCategory/:id', checkAuth, checkRole(config.ROLE.ADM
 //////////////////////////////////////////////////// Machinary Section ///////////////////////////////////////////////
 
 // get all machinedata
-routers.get('/machineData')
+routers.get('/machineData', checkAuth, checkRole(config.ROLE.ADMIN), adminControllers.getMachine)
 
 // add machinedata
-routers.post("/add_machineData")
+routers.post("/add_machineData", checkAuth, checkRole(config.ROLE.ADMIN), adminControllers.addMachine)
 
 // delete machinedata
-routers.delete("/delete_machineData/:id")
+routers.delete("/delete_machineData/:id", checkAuth, checkRole(config.ROLE.ADMIN), adminControllers.deleteMachine)
 
 // update machinedata
 routers.put('/update_machineData/:id')

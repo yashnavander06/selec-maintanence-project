@@ -1,5 +1,6 @@
 const { User, Role } = require('../Models/users.model')
 const { Asset, assetsconfig } = require('../Models/assets.model')
+const { machinedata } = require('../Models/machinedata.model')
 
 const bcrypt = require('bcrypt');
 
@@ -266,5 +267,45 @@ const deleteAssetCategory = async(req, res) => {
 
 ///////////////////////////////////////////////////// Machinary Section ////////////////////////////////////////////////
 
+// add machine
+const addMachine = async(req, res) => {
+    try {
+        const newmachine = new machinedata(req.body)
+        const Nmachinedata = await newmachine.save()
+        res.status(201).json(Nmachinedata)
+    } catch (error) {
+        return new Error(error)
+    }
+}
 
-module.exports = { getUsers, addUser, updateUser, deleteUser, addRole, getRoles, deleteRole, getAsset, addAsset, deleteAsset, addAssetCategory, getAssetCategory, deleteAssetCategory, updateAssetCategory }
+// get machine
+const getMachine = async(req, res) => {
+    try {
+        const mdata = await machinedata.find({})
+        const totalcount = await machinedata.count({})
+        if (mdata.length === 0) return res.status(404).json({ message: "No machines found" })
+
+        return res.status(200).json({ machines: mdata, total: totalcount })
+    } catch (error) {
+        return new Error(error)
+    }
+}
+
+// delete machine
+const deleteMachine = async(req, res) => {
+    try {
+        await machinedata.findByIdAndDelete({ _id: req.params.id }, (err, result) => {
+            if (result) {
+                return res.status(200).json({ message: "machine deleted successfully" })
+            }
+            if (err) {
+                return new Error(err)
+            }
+            res.status(404).json({ message: "machine not found" })
+        })
+    } catch (error) {
+        return new Error(error)
+    }
+}
+
+module.exports = { getUsers, addUser, updateUser, deleteUser, addRole, getRoles, deleteRole, getAsset, addAsset, deleteAsset, addAssetCategory, getAssetCategory, deleteAssetCategory, updateAssetCategory, addMachine, getMachine, deleteMachine }
