@@ -47,19 +47,7 @@ const user = new Schema({
         type: String,
         require: true
     },
-    roles: [role],
-    is_admin: {
-        type: Boolean,
-        require: true
-    },
-    is_coordinator: {
-        type: Boolean,
-        require: true
-    },
-    is_technician: {
-        type: Boolean,
-        require: true
-    },
+    role: role,
     note: String,
     interfaces: String,
     asset_category: [{
