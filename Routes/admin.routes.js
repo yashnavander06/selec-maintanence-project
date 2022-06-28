@@ -66,8 +66,23 @@ routers.post("/add_machineData", checkAuth, checkRole(config.ROLE.ADMIN), adminC
 routers.delete("/delete_machineData/:id", checkAuth, checkRole(config.ROLE.ADMIN), adminControllers.deleteMachine)
 
 // update machinedata
-routers.put('/update_machineData/:id')
+routers.put('/update_machineData/:id', checkAuth, checkRole(config.ROLE.ADMIN), adminControllers.updateMachine)
 
 //////////////////////////////////////////////////// Schedular Section ///////////////////////////////////////////////
+
+//////////////////////////////////////////////////// Location Section ////////////////////////////////////////////////
+
+// add location
+routers.post('/add_location', checkAuth, checkRole(config.ROLE.ADMIN), adminControllers.addLocation)
+
+// get location
+routers.get('/locations', checkAuth, checkRole(config.ROLE.ADMIN), adminControllers.getLocation)
+
+// update location
+routers.put('/update_location/:id', checkAuth, checkRole(config.ROLE.ADMIN), adminControllers.updateLocation)
+
+// delete location
+routers.delete('/delete_location/:id', checkAuth, checkRole(config.ROLE.ADMIN), adminControllers.deleteLocation)
+
 
 module.exports = routers;

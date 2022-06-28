@@ -38,6 +38,8 @@ const location = new Schema({
         type: String,
         require: true
     }
-})
+}, { timestamps: true })
 
-module.exports = mongoose.model('location', location)
+const Location = mongoose.model('location', location)
+
+module.exports = { Location }

@@ -28,7 +28,7 @@ const machineData = new Schema({
     },
     type: String
 
-})
+}, { timestamps: true })
 const machinedata = mongoose.model('machineData', machineData)
 
 module.exports = { machinedata }

@@ -7,7 +7,7 @@ const assetData = new Schema({
         // require: true,
         unique: true
     }
-})
+}, { timestamps: true })
 
 const assetsConfig = new Schema({
     asset_id: {
@@ -22,11 +22,10 @@ const assetsConfig = new Schema({
     },
     asset_list: [assetData],
     template_master: {
-        // type: Schema.Types.ObjectId,
-        // ref: "machineData"
-        type: String
+        type: Schema.Types.ObjectId,
+        ref: "machineData"
     }
-})
+}, { timestamps: true })
 
 let assetsconfig = mongoose.model('assetsConfig', assetsConfig);
 let Asset = mongoose.model('assetData', assetData);

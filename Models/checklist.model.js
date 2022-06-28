@@ -7,7 +7,7 @@ const images = new Schema({
         data: Buffer,
         contentType: String
     }
-})
+}, { timestamps: true })
 
 const taskList = new Schema({
     task: {
@@ -25,7 +25,7 @@ const taskList = new Schema({
         type: String,
         require: true
     }
-})
+}, { timestamps: true })
 
 const checkList = new Schema({
     machine_name: {
@@ -35,7 +35,7 @@ const checkList = new Schema({
     date: Date,
     checklist: taskList
 
-})
+}, { timestamps: true })
 
 let checklist = mongoose.model('checkList', checkList);
 let imageModel = mongoose.model('images', images);

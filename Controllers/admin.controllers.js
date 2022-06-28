@@ -1,6 +1,7 @@
 const { User, Role } = require('../Models/users.model')
 const { Asset, assetsconfig } = require('../Models/assets.model')
 const { machinedata } = require('../Models/machinedata.model')
+const { Location } = require('../Models/location.model')
 
 const bcrypt = require('bcrypt');
 
@@ -308,4 +309,101 @@ const deleteMachine = async(req, res) => {
     }
 }
 
-module.exports = { getUsers, addUser, updateUser, deleteUser, addRole, getRoles, deleteRole, getAsset, addAsset, deleteAsset, addAssetCategory, getAssetCategory, deleteAssetCategory, updateAssetCategory, addMachine, getMachine, deleteMachine }
+// update machine
+const updateMachine = async(req, res) => {
+    try {
+        if (req.params.id) {
+            const machineupdate = await machinedata.findByIdAndUpdate({ _id: req.params.id }, { $set: req.body }, { new: true })
+            const Mdata = await machineupdate.save()
+            res.status(200).json({ data: Mdata })
+        }
+        res.json({ message: "machineid is required" })
+    } catch (error) {
+        return new Error(error)
+    }
+}
+
+//////////////////////////////////////////////////// Schedular Section ///////////////////////////////////////////////
+
+
+//////////////////////////////////////////////////// Location Section ///////////////////////////////////////////////
+
+// add location
+const addLocation = async(req, res) => {
+    try {
+        const newLocation = new Location(req.body)
+        const locationdata = await newLocation.save()
+        res.status(201).json({ "new Location": locationdata })
+    } catch (error) {
+        return new Error(error)
+    }
+}
+
+// get location
+const getLocation = async(req, res) => {
+    try {
+        if (req.query) {
+            let status = req.query.status
+            let city = req.query.city
+            console.log(status, city)
+
+            if (status && city) {
+                const getlocationbystatusandcity = await Location.find({ status: { $regex: status }, city: { $regex: city } })
+                const gettotalcount = getlocationbystatusandcity.length
+                return res.status(200).json({ locations: getlocationbystatusandcity, total: gettotalcount }).end()
+            }
+            if (status) {
+                const getlocationbystatus = await Location.find({ status: { $regex: status } })
+                const totalstatuscount = getlocationbystatus.length
+                return res.status(200).json({ status: getlocationbystatus, total: totalstatuscount }).end()
+            }
+            if (city) {
+                const getlocationbycity = await Location.find({ city: { $regex: city } })
+                const totalcitycount = getlocationbycity.length
+                return res.status(200).json({ cities: getlocationbycity, total: totalcitycount }).end()
+            }
+        }
+
+        const getlocations = await Location.find({})
+        const totalcount = await Location.count({})
+        if (totalcount === 0) return res.status(404).json({ message: "no locations found" })
+        res.status(200).json({ locations: getlocations, total: totalcount })
+    } catch (error) {
+
+    }
+}
+
+// update location
+const updateLocation = async(req, res) => {
+    try {
+        if (req.params.id) {
+            const updatelocation = await Location.findByIdAndUpdate({ _id: req.params.id }, { $set: req.body }, { new: true })
+            console.log(updatelocation)
+            const updatedata = await updatelocation.save()
+            res.status(200).json({ data: updatedata })
+        }
+        res.json({ message: "userid is required" })
+
+
+    } catch (error) {
+        return new Error(error)
+    }
+}
+
+// delete location
+const deleteLocation = async(req, res) => {
+    try {
+        await Location.findByIdAndDelete({ _id: req.params.id }, (err, result) => {
+            if (result) {
+                return res.status(200).json({ message: "location deleted successfully" })
+            }
+            if (err) {
+                return new Error(err)
+            }
+            res.status(404).json({ message: "location not found" })
+        })
+    } catch (error) {
+        return new Error(error)
+    }
+}
+module.exports = { getUsers, addUser, updateUser, deleteUser, addRole, getRoles, deleteRole, getAsset, addAsset, deleteAsset, addAssetCategory, getAssetCategory, deleteAssetCategory, updateAssetCategory, addMachine, getMachine, deleteMachine, updateMachine, addLocation, getLocation, updateLocation, deleteLocation }

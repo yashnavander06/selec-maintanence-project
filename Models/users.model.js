@@ -6,7 +6,7 @@ const role = new Schema({
         type: String,
         index: true
     }
-})
+}, { timestamps: true })
 
 const user = new Schema({
     user_id: {
@@ -60,7 +60,7 @@ const user = new Schema({
     }]
 
 
-})
+}, { timestamps: true })
 
 const Role = mongoose.model('role', role)
 const User = mongoose.model('user', user)

@@ -30,6 +30,6 @@ const schedule = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'checkList'
     }
-})
+}, { timestamps: true })
 
 module.exports = mongoose.model('schedule', schedule)
