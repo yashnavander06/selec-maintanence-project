@@ -1,5 +1,18 @@
 const { validateToken, decodeToken } = require('../Middleware/jsonToken.middleware')
 
+// TODO Add finduser logic to middleware
+
+// async function findUser(username) {
+//     try {
+//         let user = await User.findOne({ "username": username })
+//         if (user)
+//             if (user.username === username) return user
+
+//     } catch (err) {
+//         throw new Error(err.message)
+//     }
+// }
+
 function checkRole(role) {
     return (req, res, next) => {
         if (req.valid) {

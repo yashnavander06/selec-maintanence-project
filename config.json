@@ -12,6 +12,6 @@
         "DESIGN": "design",
         "MANAGEMENT": "management",
         "DEPARTMENT_HEAD": "department-head",
-        "CO_ORDINATOR": "co-ordinator"
+        "REQUESTEE": "requestee"
     }
 }

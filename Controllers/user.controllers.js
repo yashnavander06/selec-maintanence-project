@@ -14,10 +14,11 @@ async function findUser(username) {
     }
 }
 
+// TODO eliminate this checkrole
 function checkRole(user) {
     if (user) {
         if (user.role.name === config.ROLE.ADMIN) return config.ROLE.ADMIN
-        if (user.role.name === config.ROLE.CO_ORDINATOR) return config.ROLE.CO_ORDINATOR
+        if (user.role.name === config.ROLE.REQUESTEE) return config.ROLE.REQUESTEE
         if (user.role.name === config.ROLE.DEPARTMENT_HEAD) return config.ROLE.DEPARTMENT_HEAD
         if (user.role.name === config.ROLE.DESIGN) return config.ROLE.DESIGN
         if (user.role.name === config.ROLE.MANAGEMENT) return config.ROLE.MANAGEMENT
@@ -27,6 +28,7 @@ function checkRole(user) {
     return new Error("Role Not Found")
 }
 
+// TODO logic rework on login controller
 const login = async(req, res) => {
     let username = req.body.username;
     let password = req.body.password;

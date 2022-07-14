@@ -2,6 +2,7 @@ const { User, Role } = require('../Models/users.model')
 const { Asset, assetsconfig } = require('../Models/assets.model')
 const { machinedata } = require('../Models/machinedata.model')
 const { Location } = require('../Models/location.model')
+const { Schedular } = require('../Models/schedular.model')
 
 const bcrypt = require('bcrypt');
 
@@ -215,6 +216,7 @@ const getAssetCategory = async(req, res) => {
 
 // update asset category
 const updateAssetCategory = async(req, res) => {
+    TODO //rework on update logic
     try {
         let objId = []
             // const ogdata = req.body
@@ -325,6 +327,49 @@ const updateMachine = async(req, res) => {
 
 //////////////////////////////////////////////////// Schedular Section ///////////////////////////////////////////////
 
+// get schedular
+const getSchedular = async(req, res) => {
+    try {
+        const schedular = await Schedular.find({});
+        const total = schedular.length;
+
+        if (total == 0) return res.status(404).json({ msg: "no schedules found" })
+
+        res.status(200).json({ Schedules: schedular, total: total })
+    } catch (error) {
+        return new Error(error)
+    }
+}
+
+// add schedular
+const addSchedular = async(req, res) => {
+    try {
+        const newSchedule = new Schedular(req.body)
+        const schedulardata = await newSchedule.save()
+        res.status(200).json({ msg: "data saved successfully" })
+    } catch (error) {
+        return new Error(error)
+    }
+}
+
+// update schedular
+const updateSchedular = async(req, res) => {
+    TODO // add update schedular logic here
+}
+
+// delete schedular
+
+const deleteSchedular = async(req, res) => {
+    try {
+        await Schedular.findByIdAndDelete({ _id: req.params.id }, (err, result) => {
+            if (err) return new Error(err)
+            if (result) return res.status(200).json({ msg: "schedular deleted successfully" })
+        })
+        return res.status(404).json({ msg: "schedular not found" })
+    } catch (error) {
+        return new Error(error)
+    }
+}
 
 //////////////////////////////////////////////////// Location Section ///////////////////////////////////////////////
 
@@ -406,4 +451,5 @@ const deleteLocation = async(req, res) => {
         return new Error(error)
     }
 }
-module.exports = { getUsers, addUser, updateUser, deleteUser, addRole, getRoles, deleteRole, getAsset, addAsset, deleteAsset, addAssetCategory, getAssetCategory, deleteAssetCategory, updateAssetCategory, addMachine, getMachine, deleteMachine, updateMachine, addLocation, getLocation, updateLocation, deleteLocation }
+
+module.exports = { getUsers, addUser, updateUser, deleteUser, addRole, getRoles, deleteRole, getAsset, addAsset, deleteAsset, addAssetCategory, getAssetCategory, deleteAssetCategory, updateAssetCategory, addMachine, getMachine, deleteMachine, updateMachine, getSchedular, addSchedular, updateSchedular, deleteSchedular, addLocation, getLocation, updateLocation, deleteLocation }

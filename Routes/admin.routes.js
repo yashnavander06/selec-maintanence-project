@@ -70,6 +70,18 @@ routers.put('/update_machineData/:id', checkAuth, checkRole(config.ROLE.ADMIN), 
 
 //////////////////////////////////////////////////// Schedular Section ///////////////////////////////////////////////
 
+// get schedular
+routers.get('/schedular', adminControllers.getSchedular)
+
+// add schedular
+routers.post('/add_schedular', adminControllers.addSchedular)
+
+// update schedular
+routers.put('/update_schedular/:id', adminControllers.updateSchedular)
+
+// delete schedular
+routers.delete('/delete_schedular/:id', adminControllers.deleteSchedular)
+
 //////////////////////////////////////////////////// Location Section ////////////////////////////////////////////////
 
 // add location

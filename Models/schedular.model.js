@@ -32,4 +32,5 @@ const schedule = new Schema({
     }
 }, { timestamps: true })
 
-module.exports = mongoose.model('schedule', schedule)
+const Schedular = mongoose.model('schedule', schedule)
+module.exports = { Schedular }

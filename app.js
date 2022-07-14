@@ -4,11 +4,8 @@ const bodyParser = require('body-parser');
 const connection = require('./db.connect')
 require('dotenv').config();
 
+// initialize express
 const app = express();
-
-app.get('/', (req, res) => {
-    res.send("Selec Server");
-})
 
 // Body-Parser initialization
 app.use(bodyParser.json());
@@ -17,15 +14,23 @@ app.use(bodyParser.json());
 connection();
 
 // Import Routes
-const Loginroute = require('./Routes/Login.routes')
+const Loginroute = require('./Routes/Login.routes') // Login routes
 app.use('/login', Loginroute);
-const adminRoutes = require('./Routes/admin.routes')
+const adminRoutes = require('./Routes/admin.routes') // Admin routes
 app.use('/admin', adminRoutes);
-const DummyRoute = require('./Routes/test.routes')
+const requesteeRoutes = require('./Routes/requestee.routes') // Requestee routes
+app.use('/requestee', requesteeRoutes)
+const DummyRoute = require('./Routes/test.routes') // Dummy routes
 app.use('/test', DummyRoute)
+
+// default and incorrect route
+app.get('/', (req, res) => {
+    res.send("Selec Server");
+})
+app.use("*", (req, res) => {
+   return res.status(404).json({ msg: "Request Not Found" })
+})
 
 // app connection
 const PORT = process.env.PORT || 8080
 app.listen(PORT, () => { console.log(`Server running on http://localhost:${PORT}`) })
-
-module.exports = { app }
