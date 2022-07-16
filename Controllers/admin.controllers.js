@@ -3,6 +3,8 @@ const { Asset, assetsconfig } = require('../Models/assets.model')
 const { machinedata } = require('../Models/machinedata.model')
 const { Location } = require('../Models/location.model')
 const { Schedular } = require('../Models/schedular.model')
+const { Ticket } = require('../Models/ticket.models')
+
 
 const bcrypt = require('bcrypt');
 
@@ -38,8 +40,8 @@ const getUsers = async(req, res, next) => {
 
 //  add new user
 const addUser = async(req, res) => {
-    const newUser = new User(req.body)
     try {
+        const newUser = new User(req.body)
         const saltRounds = await bcrypt.genSalt(10);
         newUser.password = await bcrypt.hash(newUser.password, saltRounds)
 
@@ -452,4 +454,4 @@ const deleteLocation = async(req, res) => {
     }
 }
 
-module.exports = { getUsers, addUser, updateUser, deleteUser, addRole, getRoles, deleteRole, getAsset, addAsset, deleteAsset, addAssetCategory, getAssetCategory, deleteAssetCategory, updateAssetCategory, addMachine, getMachine, deleteMachine, updateMachine, getSchedular, addSchedular, updateSchedular, deleteSchedular, addLocation, getLocation, updateLocation, deleteLocation }
+module.exports = { getUsers, addUser, updateUser, deleteUser, addRole, getRoles, deleteRole, getAsset, addAsset, deleteAsset, addAssetCategory, getAssetCategory, deleteAssetCategory, updateAssetCategory, addMachine, getMachine, deleteMachine, updateMachine, getSchedular, addSchedular, updateSchedular, deleteSchedular, addLocation, getLocation, updateLocation, deleteLocation}

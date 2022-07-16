@@ -1,41 +1,14 @@
-const { User } = require('../Models/users.model')
 const bcrypt = require('bcrypt')
 const { generateToken } = require('../Middleware/jsonToken.middleware')
-const config = require('../config.json')
+const {findUser, checkLoginRole} = require('../Middleware/checkAuth.middleware')
 
-async function findUser(username) {
-    try {
-        let user = await User.findOne({ "username": username })
-        if (user)
-            if (user.username === username) return user
-
-    } catch (err) {
-        throw new Error(err.message)
-    }
-}
-
-// TODO eliminate this checkrole
-function checkRole(user) {
-    if (user) {
-        if (user.role.name === config.ROLE.ADMIN) return config.ROLE.ADMIN
-        if (user.role.name === config.ROLE.REQUESTEE) return config.ROLE.REQUESTEE
-        if (user.role.name === config.ROLE.DEPARTMENT_HEAD) return config.ROLE.DEPARTMENT_HEAD
-        if (user.role.name === config.ROLE.DESIGN) return config.ROLE.DESIGN
-        if (user.role.name === config.ROLE.MANAGEMENT) return config.ROLE.MANAGEMENT
-        if (user.role.name === config.ROLE.TECHNICIAN_EXTERNAL) return config.ROLE.TECHNICIAN_EXTERNAL
-        if (user.role.name === config.ROLE.TECHNICIAN_INTERNAL) return config.ROLE.TECHNICIAN_INTERNAL
-    }
-    return new Error("Role Not Found")
-}
-
-// TODO logic rework on login controller
 const login = async(req, res) => {
     let username = req.body.username;
     let password = req.body.password;
     try {
         let user = await findUser(username)
         if (user) {
-            let role = checkRole(user)
+            let role = checkLoginRole(user)
             const compare = await bcrypt.compare(password, user.password)
             if (compare) {
                 if (role !== null) {

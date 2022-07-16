@@ -11,10 +11,11 @@ const ticket = Schema({
         require: true,
         default: ""
     },
-    open_at: {
-        type: Date,
+    description: {
+        type: String,
+        maxlength: 250,
         require: true,
-        default: Date.now()
+        default: ""
     },
     company: {
         type: String,
@@ -23,9 +24,42 @@ const ticket = Schema({
     },
     status: {
         type: String,
-        maxlength:30,
-        require:true,
-        default:"Pending operator response"
+        maxlength: 30,
+        require: true,
+        default: "open"
+    },
+    reason:{
+        type: String,
+        maxlength: 350,
+        require: true,
+        default: ""
+    },
+    escalated: {
+        type: String,
+        maxlength: 30,
+        require: true,
+        default: null 
+    },
+    escalated_reason: {
+        type: String,
+        maxlength: 350,
+        require: true,
+        default: null
+    },
+    open_at: {
+        type: Date,
+        require: true,
+        default: function(){
+            var utc = new Date();
+            utc.setHours( utc.getHours() + 5);
+            utc.setMinutes( utc.getMinutes() + 30);
+            return utc
+        }
+    },
+    close_at:{
+        type: Date,
+        require: true,
+        default: null
     }
 })
 

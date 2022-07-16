@@ -3,6 +3,7 @@ const routers = express.Router();
 const adminControllers = require('../Controllers/admin.controllers')
 const config = require('../config.json')
 const { checkAuth, checkRole } = require('../Middleware/checkAuth.middleware')
+const TicketControllers = require('../Controllers/ticket.controllers')
 
 //////////////////////////////////////////////////// User Section ///////////////////////////////////////////////////
 
@@ -96,5 +97,12 @@ routers.put('/update_location/:id', checkAuth, checkRole(config.ROLE.ADMIN), adm
 // delete location
 routers.delete('/delete_location/:id', checkAuth, checkRole(config.ROLE.ADMIN), adminControllers.deleteLocation)
 
+//////////////////////////////////////////////////// Ticket Section ///////////////////////////////////////////////
+
+// get tickets
+routers.get('/ticket', checkAuth, checkRole(config.ROLE.ADMIN), TicketControllers.getTickets)
+
+// get one ticket
+routers.get('/ticket/:ticketid', TicketControllers.getOneTicket)
 
 module.exports = routers;

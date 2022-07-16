@@ -1,24 +1,16 @@
 const { validateToken, decodeToken } = require('../Middleware/jsonToken.middleware')
-
-// TODO Add finduser logic to middleware
-
-// async function findUser(username) {
-//     try {
-//         let user = await User.findOne({ "username": username })
-//         if (user)
-//             if (user.username === username) return user
-
-//     } catch (err) {
-//         throw new Error(err.message)
-//     }
-// }
+const { User } = require('../Models/users.model')
+const config = require('../config.json')
 
 function checkRole(role) {
     return (req, res, next) => {
         if (req.valid) {
             try {
                 let tokenRole = req.valid.role
-                if (tokenRole === role) next();
+                if (tokenRole === role) {
+                    req.valid.username 
+                    next();
+                }
                 else {
                     res.status(401).json({ msg: 'You are not a authorized user' })
                 }
@@ -32,6 +24,30 @@ function checkRole(role) {
 
     }
 
+}
+
+async function findUser(username) {
+    try {
+        let user = await User.findOne({ "username": {$regex: username} })
+        if (user)
+            if (user.username === username) return user
+
+    } catch (err) {
+        throw new Error(err.message)
+    }
+}
+
+function checkLoginRole(user) {
+    if (user) {
+        if (user.role.name === config.ROLE.ADMIN) return config.ROLE.ADMIN
+        if (user.role.name === config.ROLE.REQUESTEE) return config.ROLE.REQUESTEE
+        if (user.role.name === config.ROLE.DEPARTMENT_HEAD) return config.ROLE.DEPARTMENT_HEAD
+        if (user.role.name === config.ROLE.DESIGN) return config.ROLE.DESIGN
+        if (user.role.name === config.ROLE.MANAGEMENT) return config.ROLE.MANAGEMENT
+        if (user.role.name === config.ROLE.TECHNICIAN_EXTERNAL) return config.ROLE.TECHNICIAN_EXTERNAL
+        if (user.role.name === config.ROLE.TECHNICIAN_INTERNAL) return config.ROLE.TECHNICIAN_INTERNAL
+    }
+    return new Error("Role Not Found")
 }
 
 function checkAuth(req, res, next) {
@@ -53,7 +69,4 @@ function checkAuth(req, res, next) {
 
 }
 
-
-
-
-module.exports = { checkAuth, checkRole }
+module.exports = { checkAuth, checkRole, findUser, checkLoginRole }
