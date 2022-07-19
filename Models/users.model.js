@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const { Ticket } = require("./ticket.models");
 const Schema = mongoose.Schema;
 
 const role = new Schema(
@@ -72,6 +73,17 @@ const user = new Schema(
   },
   { timestamps: true }
 );
+
+user.pre('deleteOne', { query: true, document: false },async function(next){
+  const uid = await this.model.findOne(this.getFilter())
+
+  const doc = await Ticket.deleteOne({client_id: uid._id})
+  if (doc.deletedCount === 0){
+    console.log("No Tickets Found")
+  }
+  console.log("all user data removed")
+  next()
+})
 
 module.exports = {
   Role: mongoose.model("role", role),

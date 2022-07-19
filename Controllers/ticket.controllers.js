@@ -134,35 +134,23 @@ const updateRequesteeTicket = async(req,res) => {
 const updatestatusRequesteeTicket = async(req,res) => {
     // TODO rework on update logic
     try {
-        const {status, reason, escalated, escalated_reason} = req.body
         const id = req.params.ticketid
         const updateBlock = {}
 
-        const ticket = await Ticket.findOne({_id: id})
-        if(status){
-            if(status === "escalate"){
-                updateBlock["status"] = status
-                updateBlock["escalated"] = "open"
-                console.log(updateBlock)
-            }
-            updateBlock["status.$"] = status
+        if(req.body.status){
+            if(status === "escalate") req.body.escalated = "open";
+
+            updateBlock["status"] = req.body.status
         }
 
-        // escalate if status = pending state reaches deadline
-        // if (escalated){
-        //     const ticketStatus = ticket.status
-            
-        // }
-
-        const updateTicket = await Ticket.findOneAndUpdate({_id: id},{ updateBlock },{new:true})
+        const updateTicket = await Ticket.findOneAndUpdate({_id: id}, req.body ,{new:true})
 
         if (updateTicket){
-            updateTicket.save()
+            await updateTicket.save()
             return res.status(200).json({msg:"ticket has been updated"})
         }else{
             return res.status(400).json({msg:"an error occured, try again"})
         }
-        return res.status(404).json({msg: "Ticket not found"})
     } catch (error) {
         
     }

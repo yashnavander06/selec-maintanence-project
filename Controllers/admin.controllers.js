@@ -55,21 +55,18 @@ const addUser = async(req, res) => {
 // Update user
 const updateUser = async(req, res) => {
     try {
+        // TODO Update user data (eg. roles ) using populate() method and update updatedAt time
         console.log(req.body)
-            // if (req.body.roles) {
-            //     const updaterole = await Role.findOneAndUpdate({ name: req.body.name }, {
-            //         $set: {
-            //             user_id: req.params.id
-            //         }
-            //     }, { new: true })
-            //     const ur = await updaterole.save();
-            //     res.json(ur);
-            // }
-        const updateuser = await User.findByIdAndUpdate({ _id: req.params.id }, { $set: req.body }, { new: true })
+            if (req.body.roles) {
+                const updaterole = await Role.find({name: req.body.roles})
+                console.log(updaterole)
+            }
+            req.body.updatedAt = new Date()
+            console.log(req.body)
+        const updateuser = await User.findOneAndUpdate({ _id: req.params.id }, { $set: req.body }, { new: true })
         console.log(updateuser)
-        const up = await updateuser.save();
-        res.json(up);
-
+        // const up = await updateuser.save();
+        // res.json(up);
 
     } catch (error) {
         return console.log(error.message)
@@ -81,6 +78,8 @@ const updateUser = async(req, res) => {
 // Delete user
 const deleteUser = async(req, res) => {
     try {
+        // TODO Delete user and its respective data
+        await User.deleteOne({_id:req.params.id})
         await User.findByIdAndDelete({ "_id": req.params.id }, (err, result) => {
             if (result) {
                 return res.status(200).json({ "message": "user deleted successfully" })

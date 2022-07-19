@@ -3,7 +3,8 @@ const Schema = mongoose.Schema
 
 const ticket = Schema({
     client_id: {
-        type: Schema.Types.ObjectId
+        type: Schema.Types.ObjectId,
+        ref: "user"
     },
     subject: {
         type: String,
@@ -61,6 +62,14 @@ const ticket = Schema({
         require: true,
         default: null
     }
+})
+
+ticket.pre('deleteOne',{ document: false, query: true }, async function(next){
+    const doc = await this.model.findOne(this.getFilter())
+    if (doc === null) next()
+    
+    await this.model.findByIdAndDelete(this.getFilter()).exec()
+    next()
 })
 
 module.exports = {Ticket: mongoose.model("ticket", ticket)}
