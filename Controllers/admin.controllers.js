@@ -3,8 +3,6 @@ const { Asset, assetsconfig } = require('../Models/assets.model')
 const { machinedata } = require('../Models/machinedata.model')
 const { Location } = require('../Models/location.model')
 const { Schedular } = require('../Models/schedular.model')
-const { Ticket } = require('../Models/ticket.models')
-
 
 const bcrypt = require('bcrypt');
 
@@ -27,7 +25,7 @@ const getUsers = async(req, res, next) => {
             return res.status(200).send({ users: userrole, total: total })
         }
 
-        const users = await User.find({});
+        const users = await User.find({}).populate('role',["_id","name"]);
         const total = await User.count({});
         if (users.length == 0) return res.status(404).json({ msg: "No users Found" })
 
@@ -55,21 +53,42 @@ const addUser = async(req, res) => {
 // Update user
 const updateUser = async(req, res) => {
     try {
-        // TODO Update user data (eg. roles ) using populate() method and update updatedAt time
-        console.log(req.body)
-            if (req.body.roles) {
-                const updaterole = await Role.find({name: req.body.roles})
-                console.log(updaterole)
-            }
-            req.body.updatedAt = new Date()
-            console.log(req.body)
-        const updateuser = await User.findOneAndUpdate({ _id: req.params.id }, { $set: req.body }, { new: true })
-        console.log(updateuser)
-        // const up = await updateuser.save();
-        // res.json(up);
+        // TODO rework on update assetlist and assetcategory
+        if(req.body !== null){
 
+            if (req.body.role) {
+                req.body.role = await Role.find({name: req.body.role})
+                req.body.role = req.body.role[0]
+            }
+    
+            const updateuser = await User.findOneAndUpdate({ _id: req.params.id }, 
+                // TODO check conviction for updating the data (i.e $push or $set)
+                { $set: {
+                    "username": req.body.username,
+                    "password": req.body.password,
+                    "first_name": req.body.first_name,
+                    "middle_name": req.body.middle_name,
+                    "last_name": req.body.last_name,
+                    "mobile_phone": req.body.mobile_phone,
+                    "email_id": req.body.email_id,
+                    "company_name": req.body.company_name,
+                    "role": req.body.role,
+                    "note": req.body.note,
+                    "interfaces": req.body.interfaces,
+                    "asset_category": req.body.asset_category === null ? null : req.body.asset_category,
+                    "asset_list": req.body.asset_list === null ? null : req.body.asset_list
+                }},
+                { new: true })
+            console.log(updateuser)
+            const up = await updateuser.save();
+            res.json(up);
+    
+        }
+        return new Error({error: "update fields cannot be empty"})
+
+        
     } catch (error) {
-        return console.log(error.message)
+        return new Error(error.message)
 
     }
 
@@ -78,8 +97,7 @@ const updateUser = async(req, res) => {
 // Delete user
 const deleteUser = async(req, res) => {
     try {
-        // TODO Delete user and its respective data
-        await User.deleteOne({_id:req.params.id})
+        // await User.deleteOne({_id:req.params.id})
         await User.findByIdAndDelete({ "_id": req.params.id }, (err, result) => {
             if (result) {
                 return res.status(200).json({ "message": "user deleted successfully" })
@@ -217,33 +235,35 @@ const getAssetCategory = async(req, res) => {
 
 // update asset category
 const updateAssetCategory = async(req, res) => {
-    TODO //rework on update logic
+    //TODO rework on update logic
     try {
-        let objId = []
-            // const ogdata = req.body
-        if (req.body.asset_list) {
-
-            const updateasset = await Asset.find({ asset_name: req.body.asset_list.asset_name })
-            console.log(updateasset.length)
-            if (updateasset.length == 1) {
-                objId.push(String(updateasset[0]._id))
-
-            } else {
-                for (let i = 0; i < updateasset.length; i++) {
-                    objId.push(String(updateasset[i]._id))
-                        // req.body.asset_list.asset_name[i] = objId[i]
-                        // console.log(objId[i])
-
+        let udata = []
+        let data = req.body.asset_list
+        console.log(data.length)
+        if (req.body) {
+            // TODO add data check condition for already existing asset in asset category
+            if (data.length > 1) {
+                for (let i in data) {
+                    console.log(data[i])
+                    const updateasset = await Asset.find({ asset_name: data[i] })
+                    udata.push(updateasset[0]) 
                 }
+                req.body.asset_list = udata
+                console.log(req.body.asset_list)
+            } else {
+                const updateasset = await Asset.find({ asset_name: req.body.asset_list })
+                req.body.asset_list = updateasset[0]
+                console.log(req.body.asset_list)
+
             }
-            console.log(req.body)
-            console.log(objId)
 
-        }
-        // console.log(ogdata)
-
-
-        const updateassetcategory = await assetsconfig.findByIdAndUpdate({ _id: req.params.id, "asset_list._id": objId }, { $push: req.body }, { new: true })
+        } 
+        const updateassetcategory = await assetsconfig.findOneAndUpdate({ _id: req.params.id }, 
+            { $push: {
+                "asset_category": req.body.asset_category,
+                "asset_list": req.body.asset_list
+            } }, 
+            { new: true })
         console.log(updateassetcategory)
         const uac = await updateassetcategory.save();
         res.status(200).json(uac)

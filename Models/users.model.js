@@ -9,7 +9,6 @@ const role = new Schema(
       index: true,
     },
   },
-  { timestamps: true }
 );
 
 const user = new Schema(
@@ -83,6 +82,10 @@ user.pre('deleteOne', { query: true, document: false },async function(next){
   }
   console.log("all user data removed")
   next()
+})
+
+user.pre('save', { query: true, document: false },async function(next){
+
 })
 
 module.exports = {

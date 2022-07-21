@@ -1,6 +1,8 @@
 const { Ticket } = require('../Models/ticket.models')
 const { findUser } = require('../Middleware/checkAuth.middleware')
 
+// TODO Create 2 seprate tickets Trouble ticket and Schedular Ticket
+
 //////////////////////////////////////////////////// Admin Section ////////////////////////////////////////////////////
 
 // get tickets
