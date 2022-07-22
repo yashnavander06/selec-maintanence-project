@@ -9,23 +9,23 @@ const bcrypt = require('bcrypt');
 //////////////////////////////////////////////////// User Section ////////////////////////////////////////////////////
 
 // get all users
-const getUsers = async(req, res, next) => {
+const getUsers = async(req, res) => {
     try {
         let keys = req.query.user_id
         if (keys) {
-            const user = await User.findOne({ user_id: keys })
+            const user = await User.findOne({ user_id: keys }).populate('role','name').exec()
             if (user === null) return res.status(404).json({ msg: "No user Found" })
             return res.send(user)
         }
         let role = req.query.role
         if (role) {
-            const userrole = await User.find({ "role.name": { $regex: role } })
+            const userrole = await User.find({ "role.name": { $regex: role } }).populate('role','name').exec()
             const total = userrole.length;
             if (userrole === null) return res.status(404).json({ msg: `No user with role: ${role} was found` })
             return res.status(200).send({ users: userrole, total: total })
         }
-
-        const users = await User.find({}).populate('role',["_id","name"]);
+// [{path:'role',selec:'name',model:'role'},{path:'asset_category',model:'assetsconfig'}]
+        const users = await User.find({}).populate('role','name').populate('asset_category').exec();
         const total = await User.count({});
         if (users.length == 0) return res.status(404).json({ msg: "No users Found" })
 
@@ -39,9 +39,14 @@ const getUsers = async(req, res, next) => {
 //  add new user
 const addUser = async(req, res) => {
     try {
+        if (req.body.role) {
+            req.body.role = await Role.find({name: req.body.role})
+            req.body.role = req.body.role[0]
+        }
+
         const newUser = new User(req.body)
         const saltRounds = await bcrypt.genSalt(10);
-        newUser.password = await bcrypt.hash(newUser.password, saltRounds)
+        newUser.password = await bcrypt.hash(newUser.password, saltRounds) 
 
         const Userdata = await newUser.save();
         res.json(Userdata);
@@ -54,16 +59,20 @@ const addUser = async(req, res) => {
 const updateUser = async(req, res) => {
     try {
         // TODO rework on update assetlist and assetcategory
-        if(req.body !== null){
-
+        if(req.body){
             if (req.body.role) {
                 req.body.role = await Role.find({name: req.body.role})
                 req.body.role = req.body.role[0]
             }
-    
-            const updateuser = await User.findOneAndUpdate({ _id: req.params.id }, 
-                // TODO check conviction for updating the data (i.e $push or $set)
-                { $set: {
+
+            if(req.body.asset_category){
+                let Adata 
+                Adata = await assetsconfig.find({asset_category: req.body.asset_category})
+                req.body.asset_category = Adata[0]
+            }
+            // TODO check conviction for updating the data (i.e $push or $set)
+            const updateuser = await User.findByIdAndUpdate({ _id: req.params.id }, 
+                { $push: {
                     "username": req.body.username,
                     "password": req.body.password,
                     "first_name": req.body.first_name,
@@ -75,13 +84,13 @@ const updateUser = async(req, res) => {
                     "role": req.body.role,
                     "note": req.body.note,
                     "interfaces": req.body.interfaces,
-                    "asset_category": req.body.asset_category === null ? null : req.body.asset_category,
-                    "asset_list": req.body.asset_list === null ? null : req.body.asset_list
+                    "asset_category": req.body.asset_category,
+                    "asset_list": req.body.asset_list 
                 }},
                 { new: true })
             console.log(updateuser)
             const up = await updateuser.save();
-            res.json(up);
+            return res.status(200).json(up);
     
         }
         return new Error({error: "update fields cannot be empty"})

@@ -54,13 +54,16 @@ const user = new Schema(
       type: String,
       require: true,
     },
-    role: role,
+    role: {
+      type: Schema.Types.ObjectId,
+      ref: 'role'
+    },
     note: String,
     interfaces: String,
     asset_category: [
       {
         type: Schema.Types.ObjectId,
-        ref: "assetsList",
+        ref: "assetsConfig",
       },
     ],
     asset_list: [

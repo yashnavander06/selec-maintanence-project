@@ -10,11 +10,6 @@ const assetData = new Schema({
 }, { timestamps: true })
 
 const assetsConfig = new Schema({
-    asset_id: {
-        type: Number,
-        // require: true,
-        unique: true
-    },
     asset_category: {
         type: String,
         unique: true,

@@ -8,7 +8,7 @@ const login = async(req, res) => {
     try {
         let user = await findUser(username)
         if (user) {
-            let role = checkLoginRole(user)
+            let role = await checkLoginRole(user)
             const compare = await bcrypt.compare(password, user.password)
             if (compare) {
                 if (role !== null) {
