@@ -4,21 +4,21 @@ const Schema = mongoose.Schema
 const assetData = new Schema({
     asset_name: {
         type: String,
-        // require: true,
-        unique: true
+        // unique: true,
+        sparse:true
     }
 }, { timestamps: true })
 
 const assetsConfig = new Schema({
     asset_category: {
         type: String,
-        unique: true,
-        // require: true
+        unique: true    
     },
     asset_list: [assetData],
     template_master: {
         type: Schema.Types.ObjectId,
-        ref: "machineData"
+        ref: "machineData",
+        default: null
     }
 }, { timestamps: true })
 

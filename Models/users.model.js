@@ -59,19 +59,13 @@ const user = new Schema(
       ref: 'role'
     },
     note: String,
-    interfaces: String,
+    interface: String,
     asset_category: [
       {
         type: Schema.Types.ObjectId,
         ref: "assetsConfig",
       },
-    ],
-    asset_list: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "assetData",
-      },
-    ],
+    ]
   },
   { timestamps: true }
 );
@@ -85,10 +79,6 @@ user.pre('deleteOne', { query: true, document: false },async function(next){
   }
   console.log("all user data removed")
   next()
-})
-
-user.pre('save', { query: true, document: false },async function(next){
-
 })
 
 module.exports = {

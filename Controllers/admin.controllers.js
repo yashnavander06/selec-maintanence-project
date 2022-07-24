@@ -13,18 +13,17 @@ const getUsers = async(req, res) => {
     try {
         let keys = req.query.user_id
         if (keys) {
-            const user = await User.findOne({ user_id: keys }).populate('role','name').exec()
+            const user = await User.findOne({ user_id: keys }).populate('role','name').populate('asset_category').exec()
             if (user === null) return res.status(404).json({ msg: "No user Found" })
             return res.send(user)
         }
         let role = req.query.role
         if (role) {
-            const userrole = await User.find({ "role.name": { $regex: role } }).populate('role','name').exec()
+            const userrole = await User.find({ "role.name": { $regex: role } }).populate('role','name').populate('asset_category').exec()
             const total = userrole.length;
             if (userrole === null) return res.status(404).json({ msg: `No user with role: ${role} was found` })
             return res.status(200).send({ users: userrole, total: total })
         }
-// [{path:'role',selec:'name',model:'role'},{path:'asset_category',model:'assetsconfig'}]
         const users = await User.find({}).populate('role','name').populate('asset_category').exec();
         const total = await User.count({});
         if (users.length == 0) return res.status(404).json({ msg: "No users Found" })
@@ -42,6 +41,12 @@ const addUser = async(req, res) => {
         if (req.body.role) {
             req.body.role = await Role.find({name: req.body.role})
             req.body.role = req.body.role[0]
+        }
+
+        if(req.body.asset_category){
+            let Adata 
+            Adata = await assetsconfig.find({asset_category: req.body.asset_category})
+            req.body.asset_category = Adata[0]
         }
 
         const newUser = new User(req.body)
@@ -67,6 +72,10 @@ const updateUser = async(req, res) => {
 
             if(req.body.asset_category){
                 let Adata 
+                if(req.body.seet_category === "all"){
+                    Adata = await assetsconfig.find({})
+                    req.body.asset_category = Adata[0]
+                }
                 Adata = await assetsconfig.find({asset_category: req.body.asset_category})
                 req.body.asset_category = Adata[0]
             }
@@ -216,6 +225,16 @@ const deleteAsset = async(req, res) => {
 // add asset category
 const addAssetCategory = async(req, res) => {
     try {
+        let udata = []
+
+        if(req.body.asset_list){
+            for (let i=0; i<req.body.asset_list.length;i++){
+                const updateasset = await Asset.find({ asset_name: req.body.asset_list[i] })
+                udata.push(updateasset[0]) 
+            }
+            req.body.asset_list = udata
+        }
+
         const addassetcategory = new assetsconfig(req.body)
         const assetcategorydata = await addassetcategory.save()
         res.status(201).json(assetcategorydata)
@@ -233,7 +252,7 @@ const getAssetCategory = async(req, res) => {
             if (assetdata === null) return res.status(404).json({ msg: "No category Found" })
             return res.send(assetdata)
         }
-        const getassetcategory = await assetsconfig.find({})
+        const getassetcategory = await assetsconfig.find({}).populate('asset_list')
         if (getassetcategory.length == 0) return res.status(404).json({ msg: "assetcategory not found" })
 
         res.status(200).json(getassetcategory)
@@ -246,36 +265,67 @@ const getAssetCategory = async(req, res) => {
 const updateAssetCategory = async(req, res) => {
     //TODO rework on update logic
     try {
-        let udata = []
-        let data = req.body.asset_list
-        console.log(data.length)
         if (req.body) {
+            let udata = []
+            let list = {}
+            let newdata = req.body.asset_list
+            let nonsimilardata, similardata = []
             // TODO add data check condition for already existing asset in asset category
-            if (data.length > 1) {
-                for (let i in data) {
-                    console.log(data[i])
-                    const updateasset = await Asset.find({ asset_name: data[i] })
-                    udata.push(updateasset[0]) 
-                }
-                req.body.asset_list = udata
-                console.log(req.body.asset_list)
-            } else {
-                const updateasset = await Asset.find({ asset_name: req.body.asset_list })
-                req.body.asset_list = updateasset[0]
-                console.log(req.body.asset_list)
 
+            // Old asset Category data
+            const oldAssetCategoryData = await assetsconfig.find({_id: req.params.id})
+            const oldAssetData = oldAssetCategoryData[0].asset_list
+
+            // checking similar asset data in asset_list to avoid redundency //
+
+            // filtering old asset_list name into a new list
+            for(let i=0; i<oldAssetData.length; i++){
+                list[i] = oldAssetData[i].asset_name
+            }
+            obj1 = Object.values(list)
+
+            // comparing and assigning the largest list length to lenght variable
+            if (newdata.length > oldAssetData.length){
+                length = newdata.length
+            }else{
+                length = oldAssetData.length
             }
 
+            // checking redendancy in the data
+            for (let i=0; i<length;i++){
+                if(obj1.includes(newdata[i]) != true){
+                    nonsimilardata.push(newdata[i])
+                }else{
+                    similardata.push(newdata[i])
+                }
+            }
+            if(nonsimilardata !== undefined){
+                if (nonsimilardata.length > 1) {
+                    for (let i in nonsimilardata) {
+                        const updateasset = await Asset.find({ asset_name: nonsimilardata[i] })
+                        udata.push(updateasset[0]) 
+                    }
+                    req.body.asset_list = udata
+                    console.log(req.body.asset_list)
+                } else {
+                    const updateasset = await Asset.find({ asset_name: nonsimilardata })
+                    req.body.asset_list = updateasset[0]
+                }
+
+                const updateassetcategory = await assetsconfig.findOneAndUpdate({ _id: req.params.id }, 
+                    { $push: {
+                        "asset_category": req.body.asset_category,
+                        "asset_list": req.body.asset_list
+                    } }, 
+                    { new: true })
+                console.log(updateassetcategory)
+                const uac = await updateassetcategory.save();
+                return res.status(200).json(uac)
+            }
+            return res.status(422).json({msg:"asset list already exits"})
         } 
-        const updateassetcategory = await assetsconfig.findOneAndUpdate({ _id: req.params.id }, 
-            { $push: {
-                "asset_category": req.body.asset_category,
-                "asset_list": req.body.asset_list
-            } }, 
-            { new: true })
-        console.log(updateassetcategory)
-        const uac = await updateassetcategory.save();
-        res.status(200).json(uac)
+        return res.status(400).json({msg:"request body cannot be empty"})
+        
     } catch (error) {
         return new Error(error)
     }

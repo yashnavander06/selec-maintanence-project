@@ -103,6 +103,6 @@ routers.delete('/delete_location/:id', checkAuth, checkRole(config.ROLE.ADMIN), 
 routers.get('/ticket', checkAuth, checkRole(config.ROLE.ADMIN), TicketControllers.getTickets)
 
 // get one ticket
-routers.get('/ticket/:ticketid', TicketControllers.getOneTicket)
+routers.get('/ticket/:ticketid', checkAuth, checkRole(config.ROLE.ADMIN), TicketControllers.getOneTicket)
 
 module.exports = routers;

@@ -48,11 +48,16 @@ const getTickets = async(req,res)=>{
 const getOneTicket = async(req,res) => {
     try {
         const ticketid = req.params.ticketid
+        if(ticketid != null){
+            const ticket = await Ticket.findOne({_id: ticketid})
+            if (!ticket) return res.status(404).json({msg:"no tickets found"})
+    
+            return res.status(200).json({ticket:ticket})
+        }
+        else{
+            return res.status(400).json({msg:"ticketId cannot be empty"})
+        }
 
-        const ticket = await Ticket.findOne({_id: ticketid})
-        if (!ticket) return res.status(404).json({msg:"no tickets found"})
-
-        return res.status(200).json({ticket:ticket})
     } catch (error) {
         return new Error(error)
     }

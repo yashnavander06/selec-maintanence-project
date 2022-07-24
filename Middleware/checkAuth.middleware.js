@@ -1,4 +1,4 @@
-const { validateToken, decodeToken } = require('../Middleware/jsonToken.middleware')
+const { validateToken } = require('../Middleware/jsonToken.middleware')
 const { User, Role } = require('../Models/users.model')
 const config = require('../config.json')
 
@@ -37,7 +37,7 @@ async function findUser(username) {
     }
 }
 
-async function checkLoginRole(user) {
+async function getLoginRole(user) {
     if (user) {
         let role = await Role.find({_id: user.role})
         role = role[0]
@@ -51,6 +51,20 @@ async function checkLoginRole(user) {
         if (role.name === config.ROLE.TECHNICIAN_INTERNAL) return config.ROLE.TECHNICIAN_INTERNAL
     }
     return new Error("Role Not Found")
+}
+
+function getInterface(user){
+    try {
+        if (user){
+            let interface = user.interface
+            if(interface === config.INTERFACE.APP) return config.INTERFACE.APP
+            if(interface === config.INTERFACE.EMAIL) return config.INTERFACE.EMAIL
+            if(interface === config.INTERFACE.WEBAPP) return config.INTERFACE.WEBAPP
+        }
+        return new Error("Interface Not Found")
+    } catch (error) {
+        return new Error(error)
+    }
 }
 
 function checkAuth(req, res, next) {
@@ -72,4 +86,4 @@ function checkAuth(req, res, next) {
 
 }
 
-module.exports = { checkAuth, checkRole, findUser, checkLoginRole }
+module.exports = { checkAuth, checkRole, findUser, getLoginRole, getInterface }

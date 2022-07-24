@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt')
 const { generateToken } = require('../Middleware/jsonToken.middleware')
-const {findUser, checkLoginRole} = require('../Middleware/checkAuth.middleware')
+const {findUser, getLoginRole, getInterface} = require('../Middleware/checkAuth.middleware')
 
 const login = async(req, res) => {
     let username = req.body.username;
@@ -8,12 +8,16 @@ const login = async(req, res) => {
     try {
         let user = await findUser(username)
         if (user) {
-            let role = await checkLoginRole(user)
+            let role = await getLoginRole(user)
             const compare = await bcrypt.compare(password, user.password)
             if (compare) {
                 if (role !== null) {
-                    let token = generateToken(user.username, role)
-                    res.status(201).json({ access_token: token });
+                    let interface = getInterface(user)
+                    if (interface !== null){
+                        let token = generateToken(user.username, role, interface)
+                        res.status(201).json({ access_token: token });
+                    }
+                    return res.status(404).json({ error: interface })
                 }
                 return res.status(404).json({ error: role })
             }

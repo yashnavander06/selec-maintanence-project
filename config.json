@@ -13,5 +13,10 @@
         "MANAGEMENT": "management",
         "DEPARTMENT_HEAD": "department-head",
         "REQUESTEE": "requestee"
+    },
+    "INTERFACE":{
+        "APP": "App",
+        "EMAIL": "Email",
+        "WEBAPP": "Webapp"
     }
 }
