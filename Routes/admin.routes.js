@@ -116,4 +116,7 @@ routers.get('/checklist', adminControllers.getChecklist)
 // get one checklist
 routers.get('/checklist/:id', adminControllers.getOneChecklist)
 
+// add checklist
+routers.post('/add_checklist', adminControllers.addChecklist)
+
 module.exports = routers;

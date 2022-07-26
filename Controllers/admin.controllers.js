@@ -3,7 +3,7 @@ const { Asset, assetsconfig } = require('../Models/assets.model')
 const { machinedata } = require('../Models/machinedata.model')
 const { Location } = require('../Models/location.model')
 const { Schedular } = require('../Models/schedular.model')
-const { checklist } = require('../Models/checklist.model')
+const { checklist, tasklist } = require('../Models/checklist.model')
 
 const bcrypt = require('bcrypt');
 
@@ -603,10 +603,25 @@ const getOneChecklist = async(req,res) => {
 
 // add checklist
 const addChecklist = async(req,res) => {
+    // TODO add checklist logic and with dynamic tasklist addition
     try {
+
+        // if tasklist exists in req body, create new tasklist
+        // check if tasklist already exists?
+        if(req.body.checklist){
+            const tasklistdata = req.body.checklist
+            console.log(tasklistdata.length)
+            for (let i in tasklistdata){
+                const newtasklist = new tasklist({task: tasklistdata[i]})
+                const savetasklist = await newtasklist.save()
+            }
+        }
+
+        // get id of newly created tasklist and push it to req.body.checklist array/list
+
         const newchecklist = new checklist()
     } catch (error) {
-        
+        return new Error(error)
     }
 }
-module.exports = { getUsers, addUser, updateUser, deleteUser, addRole, getRoles, deleteRole, getAsset, addAsset, deleteAsset, addAssetCategory, getAssetCategory, deleteAssetCategory, updateAssetCategory, addMachine, getMachine, deleteMachine, updateMachine, getSchedular, getOneSchedule, addSchedular, updateSchedular, deleteSchedular, addLocation, getLocation, updateLocation, deleteLocation, getChecklist, getOneChecklist}
+module.exports = { getUsers, addUser, updateUser, deleteUser, addRole, getRoles, deleteRole, getAsset, addAsset, deleteAsset, addAssetCategory, getAssetCategory, deleteAssetCategory, updateAssetCategory, addMachine, getMachine, deleteMachine, updateMachine, getSchedular, getOneSchedule, addSchedular, updateSchedular, deleteSchedular, addLocation, getLocation, updateLocation, deleteLocation, getChecklist, getOneChecklist, addChecklist}
