@@ -74,6 +74,9 @@ routers.put('/update_machineData/:id', checkAuth, checkRole(config.ROLE.ADMIN), 
 // get schedular
 routers.get('/schedular', adminControllers.getSchedular)
 
+// get one schedule
+routers.get('/scheular/:id', adminControllers.getOneSchedule)
+
 // add schedular
 routers.post('/add_schedular', adminControllers.addSchedular)
 
@@ -104,5 +107,13 @@ routers.get('/ticket', checkAuth, checkRole(config.ROLE.ADMIN), TicketController
 
 // get one ticket
 routers.get('/ticket/:ticketid', checkAuth, checkRole(config.ROLE.ADMIN), TicketControllers.getOneTicket)
+
+//////////////////////////////////////////////////// Checklist Section ///////////////////////////////////////////////
+
+// get checklists
+routers.get('/checklist', adminControllers.getChecklist)
+
+// get one checklist
+routers.get('/checklist/:id', adminControllers.getOneChecklist)
 
 module.exports = routers;

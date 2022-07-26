@@ -113,8 +113,8 @@ const addRequesteeTicket = async(req,res) => {
         const newTicket = new Ticket(req.body)
         const username = req.valid.username  // data retrived from token
         const user = await findUser(username)
-        const userid = user._id
-        newTicket.client_id = userid
+        newTicket.client_id = user._id
+        newTicket.ticket_type = "trouble"
         const ticketData = await newTicket.save()
         if (ticketData === null) return res.status(501).json({msg:"unable to create ticket, try again"})
         return res.status(201).json({msg: "ticket created successfully"})

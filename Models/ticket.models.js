@@ -63,6 +63,11 @@ const ticket = Schema({
         type: Date,
         require: true,
         default: null
+    },
+    ticket_type:{
+        type: String,
+        require: true,
+        default: "schdule"
     }
 })
 

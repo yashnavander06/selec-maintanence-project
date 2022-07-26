@@ -3,6 +3,7 @@ const { Asset, assetsconfig } = require('../Models/assets.model')
 const { machinedata } = require('../Models/machinedata.model')
 const { Location } = require('../Models/location.model')
 const { Schedular } = require('../Models/schedular.model')
+const { checklist } = require('../Models/checklist.model')
 
 const bcrypt = require('bcrypt');
 
@@ -410,12 +411,38 @@ const updateMachine = async(req, res) => {
 // get schedular
 const getSchedular = async(req, res) => {
     try {
+        if(req.query.asset_category){
+            const schedular = await Schedular.find({ asset_category: req.query.asset_category });
+            const total = schedular.length;
+    
+            if (total == 0) return res.status(404).json({ msg: "no schedules found" })
+    
+            res.status(200).json({ Schedules: schedular, total: total })
+        }
+
         const schedular = await Schedular.find({});
         const total = schedular.length;
 
         if (total == 0) return res.status(404).json({ msg: "no schedules found" })
 
         res.status(200).json({ Schedules: schedular, total: total })
+    } catch (error) {
+        return new Error(error)
+    }
+}
+
+// get a schedule
+const getOneSchedule = async(req,res)=>{
+    try {
+        if(req.params.id){
+            const schedular = await Schedular.find({_id: req.params.id});
+            const total = schedular.length;
+    
+            if (total == 0) return res.status(404).json({ msg: "no schedule found" })
+    
+            res.status(200).json({ Schedule: schedular })
+        }
+        return res.status(400).json({msg: "id cannot be empty"})
     } catch (error) {
         return new Error(error)
     }
@@ -532,4 +559,54 @@ const deleteLocation = async(req, res) => {
     }
 }
 
-module.exports = { getUsers, addUser, updateUser, deleteUser, addRole, getRoles, deleteRole, getAsset, addAsset, deleteAsset, addAssetCategory, getAssetCategory, deleteAssetCategory, updateAssetCategory, addMachine, getMachine, deleteMachine, updateMachine, getSchedular, addSchedular, updateSchedular, deleteSchedular, addLocation, getLocation, updateLocation, deleteLocation}
+//////////////////////////////////////////////////// Checklist Section ///////////////////////////////////////////////
+
+// get checklists
+const getChecklist = async(req,res) => {
+    try {
+
+        if(req.query.machine_name){
+            const getchecklist = await checklist.find({machine_name: req.query.machine_name})
+            const total = getchecklist.length
+
+            if(total == 0) return res.status(404).json({msg: "no checklist found"})
+
+            return res.status(200).json({checklist: getchecklist, total: total})
+        }
+        const getchecklist = await checklist.find({})
+        const total = getchecklist.length
+
+        if(total == 0) return res.status(404).json({msg: "no checklist found"})
+
+        return res.status(200).json({checklist: getchecklist, total: total})
+
+    } catch (error) {
+        return new Error(error)
+    }
+}
+
+// get one checklist
+const getOneChecklist = async(req,res) => {
+    try {
+        if(req.params.id){
+            const getonechecklist = await checklist.find({_id: req.params.id})
+            const total = getonechecklist.length
+            if(total == 0) return res.status(404).json({msg: "no checklist found"})
+    
+            return res.status(200).json({checklist: getonechecklist}) 
+        }
+        return res.status(400).json({msg:"id cannot be empty"})
+    } catch (error) {
+        return new Error(error)
+    }
+}
+
+// add checklist
+const addChecklist = async(req,res) => {
+    try {
+        const newchecklist = new checklist()
+    } catch (error) {
+        
+    }
+}
+module.exports = { getUsers, addUser, updateUser, deleteUser, addRole, getRoles, deleteRole, getAsset, addAsset, deleteAsset, addAssetCategory, getAssetCategory, deleteAssetCategory, updateAssetCategory, addMachine, getMachine, deleteMachine, updateMachine, getSchedular, getOneSchedule, addSchedular, updateSchedular, deleteSchedular, addLocation, getLocation, updateLocation, deleteLocation, getChecklist, getOneChecklist}
