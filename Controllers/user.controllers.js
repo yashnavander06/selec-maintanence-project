@@ -15,7 +15,7 @@ const login = async(req, res) => {
                     let interface = getInterface(user)
                     if (interface !== null){
                         let token = generateToken(user.username, role, interface)
-                        res.status(201).json({ access_token: token });
+                        res.status(201).json({ access_token: token, role: role });
                     }
                     return res.status(404).json({ error: interface })
                 }

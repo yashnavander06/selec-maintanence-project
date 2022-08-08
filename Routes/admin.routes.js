@@ -50,7 +50,7 @@ routers.post('/add_assetCategory', checkAuth, checkRole(config.ROLE.ADMIN), admi
 routers.get('/assetCategory', checkAuth, checkRole(config.ROLE.ADMIN), adminControllers.getAssetCategory)
 
 // update asset category
-routers.put('/update_assetCategory/:id', adminControllers.updateAssetCategory)
+routers.put('/update_assetCategory/:id', checkAuth, checkRole(config.ROLE.ADMIN), adminControllers.updateAssetCategory)
 
 // delete asset category
 routers.delete('/delete_assetCategory/:id', checkAuth, checkRole(config.ROLE.ADMIN), adminControllers.deleteAssetCategory)
