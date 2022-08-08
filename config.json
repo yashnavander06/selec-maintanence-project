@@ -1,0 +1,17 @@
+{
+    "Jwt": {
+        "access_expires": 480,
+        "refresh_expires": 1200,
+        "JWT_SECRET_KEY": "efed624b326d36889b3d70659aaa4219",
+        "TOKEN_HEADER_KEY": "e66d927418de0bbb9a363392783197ad"
+    },
+    "ROLE": {
+        "ADMIN": "admin",
+        "TECHNICIAN_INTERNAL": "technician-internal",
+        "TECHNICIAN_EXTERNAL": "technician-external",
+        "DESIGN": "design",
+        "MANAGEMENT": "management",
+        "DEPARTMENT_HEAD": "department-head",
+        "REQUESTEE": "requestee"
+    }
+}

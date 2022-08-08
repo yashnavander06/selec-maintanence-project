@@ -1,0 +1,43 @@
+GET http://localhost:3000 HTTP/1.1
+
+###
+POST http://localhost:3000/test HTTP/1.1
+Content-Type: application/json
+
+{
+    "user_id":6969,
+    "username":"chinmay",
+    "password":"chinmay",
+    "first_name":"chinmay",
+    "middle_name":"",
+    "last_name":"",
+    "mobile_phone":7039705652,
+    "email_id":"china@gmail.com",
+    "company_name":"selec",
+    "role":"technician-external",
+    "note":"",
+    "interfaces":"",
+    "asset_category":[],
+    "asset_list":[]
+}
+
+###
+GET http://localhost:3000/admin HTTP/1.1
+
+###
+POST  http://localhost:3000/login HTTP/1.1
+Content-Type: application/json
+
+{
+    "username":"amoood_",
+    "password":"AModh"
+}
+
+###
+POST http://localhost:3000/login HTTP/1.1
+Content-Type: application/json
+
+{
+    "username":"Dummyuser",
+    "password":"1234"
+}
