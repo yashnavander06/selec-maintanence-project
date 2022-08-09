@@ -1,5 +1,3 @@
-//  TODO complete helper logic of admin
-
 const getLength = (olddata,newdata) =>{
     try {
         let datalength = 0

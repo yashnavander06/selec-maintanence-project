@@ -21,7 +21,11 @@ const getUsers = async(req, res) => {
         }
         let role = req.query.role
         if (role) {
-            const userrole = await User.find({ "role.name": { $regex: role } }).populate('role','name').populate('asset_category').populate('skills').exec()
+
+            const roleid = await Role.find({name: role})
+            role = roleid[0]._id.toString()
+            console.log(role)
+            const userrole = await User.find({ _id: role}).populate('role','name').populate('asset_category').populate('skills').exec()
             const total = userrole.length;
             if (userrole === null) return res.status(404).json({ msg: `No user with role: ${role} was found` })
             return res.status(200).send({ users: userrole, total: total })
@@ -88,7 +92,7 @@ const addUser = async(req, res) => {
 }
 
 // Update user
-const updateUser = async(req, res) => {
+const updateUser = async(req, res) => { 
     try {
         // TODO rework on update assetlist and assetcategory
         if(req.body){
@@ -100,7 +104,10 @@ const updateUser = async(req, res) => {
             // TODO calculate lenght of the asset data and do the change accordingly
             if(req.body.asset_category){
                 let Adata 
-                if(req.body.asset_category === "all"){
+                if(req.body.asset_category){
+                    const oldcategory = await assetsconfig.find({})
+                }
+                else if(req.body.asset_category === "all"){
                     Adata = await assetsconfig.find({})
                     req.body.asset_category = Adata[0]
                 }
@@ -130,6 +137,7 @@ const updateUser = async(req, res) => {
 
                     // checks for redundant value and returns nonredundant values
                     let nonRedundant = checkReduncancy(length,obj,techskills)
+
                     if (nonRedundant !== undefined){
                         let data = []
                         for (let i in techskills){

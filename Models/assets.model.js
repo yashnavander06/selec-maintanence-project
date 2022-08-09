@@ -29,7 +29,7 @@ const assetsConfig = new Schema({
         unique: true,
         // require: true
     },
-    // asset_list: [assetData.get(asset_name)],
+    asset_list: [assetData],
     template_master: {
         type: Schema.Types.ObjectId,
         ref: "machineData",
