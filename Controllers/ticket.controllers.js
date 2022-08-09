@@ -81,7 +81,7 @@ const getRequesteeTickets = async(req,res) => {
             if (ticket.length === 0) return res.status(404).json({msg:"no tickets found"})
             return res.status(200).json({data:ticket})
         }
-        const tickets = await Ticket.find({client_id: userid})
+        const tickets = await Ticket.find({client_id: userid}).populate("asset_name").exec()
         const total = tickets.length
         if (total === 0) return res.status(404).json({msg:"no tickets found"})
 
@@ -111,16 +111,19 @@ const getRequesteeOneTicket = async(req,res) => {
 // add ticket
 const addRequesteeTicket = async(req,res) => {
     try {
-        const newTicket = req.body
         const username = req.valid.username  // data retrived from token
         const user = await findUser(username)
-        newTicket.client_id = user._id
-        newTicket.ticket_type = "trouble"
 
-        if(newTicket.asset_name){
-            const assetid = await Asset.find({asset_name: newTicket.asset_name})
-            newTicket.asset_name = assetid
+        req.body.client_id = user._id
+        req.body.ticket_type = "trouble"
+
+        if(req.body.asset_name){
+            const assetid = await Asset.find({asset_name: req.body.asset_name})
+            req.body.asset_name = assetid[0]
         }
+
+        const newTicket = new Ticket(req.body)
+        console.log(newTicket)
 
         const ticketData = await newTicket.save()
         if (ticketData === null) return res.status(501).json({msg:"unable to create ticket, try again"})

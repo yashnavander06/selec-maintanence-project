@@ -79,7 +79,8 @@ const ticket = Schema({
     },
     accepted_by: {
         type: Schema.Types.ObjectId,
-        ref: "user"
+        ref: "user",
+        default: null
     },
     location: {
         type: String
