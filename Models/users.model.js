@@ -65,6 +65,12 @@ const user = new Schema(
         type: Schema.Types.ObjectId,
         ref: "assetsConfig",
       },
+    ],
+    skills:[
+      {
+        type: Schema.Types.ObjectId,
+        ref: "assetData"
+      }
     ]
   },
   { timestamps: true }

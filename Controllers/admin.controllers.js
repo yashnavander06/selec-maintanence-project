@@ -4,6 +4,7 @@ const { machinedata } = require('../Models/machinedata.model')
 const { Location } = require('../Models/location.model')
 const { Schedular } = require('../Models/schedular.model')
 const { checklist, tasklist } = require('../Models/checklist.model')
+const { getLength, checkReduncancy } = require('../Helper/admin.helper')
 
 const bcrypt = require('bcrypt');
 
@@ -14,18 +15,18 @@ const getUsers = async(req, res) => {
     try {
         let keys = req.query.user_id
         if (keys) {
-            const user = await User.findOne({ user_id: keys }).populate('role','name').populate('asset_category').exec()
+            const user = await User.findOne({ user_id: keys }).populate('role','name').populate('asset_category').populate('skills').exec()
             if (user === null) return res.status(404).json({ msg: "No user Found" })
             return res.send(user)
         }
         let role = req.query.role
         if (role) {
-            const userrole = await User.find({ "role.name": { $regex: role } }).populate('role','name').populate('asset_category').exec()
+            const userrole = await User.find({ "role.name": { $regex: role } }).populate('role','name').populate('asset_category').populate('skills').exec()
             const total = userrole.length;
             if (userrole === null) return res.status(404).json({ msg: `No user with role: ${role} was found` })
             return res.status(200).send({ users: userrole, total: total })
         }
-        const users = await User.find({}).populate('role','name').populate('asset_category').exec();
+        const users = await User.find({}).populate('role','name').populate('asset_category').populate('skills').exec();
         const total = await User.count({});
         if (users.length == 0) return res.status(404).json({ msg: "No users Found" })
 
@@ -39,15 +40,40 @@ const getUsers = async(req, res) => {
 //  add new user
 const addUser = async(req, res) => {
     try {
+        
         if (req.body.role) {
             req.body.role = await Role.find({name: req.body.role})
             req.body.role = req.body.role[0]
         }
 
         if(req.body.asset_category){
-            let Adata 
+            category = req.body.asset_category
+            if(category.length >= 2){
+                let data = []
+                for (let i in category){
+                    categories = await assetsconfig.find({asset_name: req.body.asset_category[i]})
+                    data.push(categories[0]) 
+                }
+                req.body.asset_category = data
+            }
             Adata = await assetsconfig.find({asset_category: req.body.asset_category})
             req.body.asset_category = Adata[0]
+        }
+
+        if(req.body.skills){
+            techskills = req.body.skills
+            if(techskills.length >= 2){
+                let data = []
+                for (let i in techskills){
+                    skills = await Asset.find({asset_name: req.body.skills[i]})
+                    data.push(skills[0]) 
+                }
+                req.body.skills = data
+            }else{
+                skills = await Asset.find({asset_name: req.body.skills})
+                req.body.skills = skills[0]
+            }
+            
         }
 
         const newUser = new User(req.body)
@@ -71,16 +97,57 @@ const updateUser = async(req, res) => {
                 req.body.role = req.body.role[0]
             }
 
+            // TODO calculate lenght of the asset data and do the change accordingly
             if(req.body.asset_category){
                 let Adata 
-                if(req.body.seet_category === "all"){
+                if(req.body.asset_category === "all"){
                     Adata = await assetsconfig.find({})
                     req.body.asset_category = Adata[0]
                 }
                 Adata = await assetsconfig.find({asset_category: req.body.asset_category})
                 req.body.asset_category = Adata[0]
             }
-            // TODO check conviction for updating the data (i.e $push or $set)
+
+            if(req.body.skills){
+                let techskills = req.body.skills
+                let skills = []
+                if(techskills.length >= 2){
+                    const oldUserSkill = await User.find({_id: req.params.id})
+                    const oldUserSkills = oldUserSkill[0].skills
+
+                    if(oldUserSkills.length >=2){
+                        for (let i in  oldUserSkills){
+                            const Sdata = await Asset.find({_id: oldUserSkills[i]})
+                            skills.push(Sdata[0])
+                        } 
+                    }else{
+                        const Sdata = await Asset.find({_id: oldUserSkills})
+                        skills.push(Sdata[0])
+                    }
+
+                    // checks the largest length amongest old and new data array
+                    let {length, obj} = getLength(skills, techskills)
+
+                    // checks for redundant value and returns nonredundant values
+                    let nonRedundant = checkReduncancy(length,obj,techskills)
+                    if (nonRedundant !== undefined){
+                        let data = []
+                        for (let i in techskills){
+                            skills = await Asset.find({asset_name: nonRedundant[i]})
+                            data.push(skills[0]) 
+                        }
+                        req.body.skills = data
+                    }else{
+                        req.body.skills = ""
+                    }
+                    
+                }else{
+                    skills = await Asset.find({asset_name: req.body.skills})
+                    req.body.skills = skills[0]
+                }
+                
+            }
+
             const updateuser = await User.findByIdAndUpdate({ _id: req.params.id }, 
                 { $push: {
                     "username": req.body.username,
@@ -95,7 +162,7 @@ const updateUser = async(req, res) => {
                     "note": req.body.note,
                     "interfaces": req.body.interfaces,
                     "asset_category": req.body.asset_category,
-                    "asset_list": req.body.asset_list 
+                    "skills": req.body.skills 
                 }},
                 { new: true })
             console.log(updateuser)
@@ -264,20 +331,21 @@ const getAssetCategory = async(req, res) => {
 
 // update asset category
 const updateAssetCategory = async(req, res) => {
-    //TODO rework on update logic
     try {
         if (req.body) {
             let udata = []
-            let list = {}
+            let list = []
             let newdata = req.body.asset_list
-            let nonsimilardata, similardata = []
-            // TODO add data check condition for already existing asset in asset category
+            let nonsimilardata=[] 
+            similardata = []
+            let length = 0
 
             // Old asset Category data
             const oldAssetCategoryData = await assetsconfig.find({_id: req.params.id})
             const oldAssetData = oldAssetCategoryData[0].asset_list
 
             // checking similar asset data in asset_list to avoid redundency //
+            // TODO replace code with helper
 
             // filtering old asset_list name into a new list
             for(let i=0; i<oldAssetData.length; i++){
@@ -286,7 +354,7 @@ const updateAssetCategory = async(req, res) => {
             obj1 = Object.values(list)
 
             // comparing and assigning the largest list length to lenght variable
-            if (newdata.length > oldAssetData.length){
+            if (newdata.length >= oldAssetData.length){
                 length = newdata.length
             }else{
                 length = oldAssetData.length
@@ -294,12 +362,13 @@ const updateAssetCategory = async(req, res) => {
 
             // checking redendancy in the data
             for (let i=0; i<length;i++){
-                if(obj1.includes(newdata[i]) != true){
+                if(obj1.includes(newdata[i]) == false){
                     nonsimilardata.push(newdata[i])
                 }else{
                     similardata.push(newdata[i])
                 }
             }
+
             if(nonsimilardata !== undefined){
                 if (nonsimilardata.length > 1) {
                     for (let i in nonsimilardata) {
@@ -307,7 +376,6 @@ const updateAssetCategory = async(req, res) => {
                         udata.push(updateasset[0]) 
                     }
                     req.body.asset_list = udata
-                    console.log(req.body.asset_list)
                 } else {
                     const updateasset = await Asset.find({ asset_name: nonsimilardata })
                     req.body.asset_list = updateasset[0]
