@@ -3,31 +3,29 @@ const { Asset, assetsconfig } = require('../Models/assets.model')
 const { machinedata } = require('../Models/machinedata.model')
 const { Location } = require('../Models/location.model')
 const { Schedular } = require('../Models/schedular.model')
-const { Ticket } = require('../Models/ticket.models')
-
+const { checklist, tasklist } = require('../Models/checklist.model')
 
 const bcrypt = require('bcrypt');
 
 //////////////////////////////////////////////////// User Section ////////////////////////////////////////////////////
 
 // get all users
-const getUsers = async(req, res, next) => {
+const getUsers = async(req, res) => {
     try {
         let keys = req.query.user_id
         if (keys) {
-            const user = await User.findOne({ user_id: keys })
+            const user = await User.findOne({ user_id: keys }).populate('role','name').populate('asset_category').exec()
             if (user === null) return res.status(404).json({ msg: "No user Found" })
             return res.send(user)
         }
         let role = req.query.role
         if (role) {
-            const userrole = await User.find({ "role.name": { $regex: role } })
+            const userrole = await User.find({ "role.name": { $regex: role } }).populate('role','name').populate('asset_category').exec()
             const total = userrole.length;
             if (userrole === null) return res.status(404).json({ msg: `No user with role: ${role} was found` })
             return res.status(200).send({ users: userrole, total: total })
         }
-
-        const users = await User.find({});
+        const users = await User.find({}).populate('role','name').populate('asset_category').exec();
         const total = await User.count({});
         if (users.length == 0) return res.status(404).json({ msg: "No users Found" })
 
@@ -41,9 +39,20 @@ const getUsers = async(req, res, next) => {
 //  add new user
 const addUser = async(req, res) => {
     try {
+        if (req.body.role) {
+            req.body.role = await Role.find({name: req.body.role})
+            req.body.role = req.body.role[0]
+        }
+
+        if(req.body.asset_category){
+            let Adata 
+            Adata = await assetsconfig.find({asset_category: req.body.asset_category})
+            req.body.asset_category = Adata[0]
+        }
+
         const newUser = new User(req.body)
         const saltRounds = await bcrypt.genSalt(10);
-        newUser.password = await bcrypt.hash(newUser.password, saltRounds)
+        newUser.password = await bcrypt.hash(newUser.password, saltRounds) 
 
         const Userdata = await newUser.save();
         res.json(Userdata);
@@ -55,24 +64,50 @@ const addUser = async(req, res) => {
 // Update user
 const updateUser = async(req, res) => {
     try {
-        console.log(req.body)
-            // if (req.body.roles) {
-            //     const updaterole = await Role.findOneAndUpdate({ name: req.body.name }, {
-            //         $set: {
-            //             user_id: req.params.id
-            //         }
-            //     }, { new: true })
-            //     const ur = await updaterole.save();
-            //     res.json(ur);
-            // }
-        const updateuser = await User.findByIdAndUpdate({ _id: req.params.id }, { $set: req.body }, { new: true })
-        console.log(updateuser)
-        const up = await updateuser.save();
-        res.json(up);
+        // TODO rework on update assetlist and assetcategory
+        if(req.body){
+            if (req.body.role) {
+                req.body.role = await Role.find({name: req.body.role})
+                req.body.role = req.body.role[0]
+            }
 
+            if(req.body.asset_category){
+                let Adata 
+                if(req.body.seet_category === "all"){
+                    Adata = await assetsconfig.find({})
+                    req.body.asset_category = Adata[0]
+                }
+                Adata = await assetsconfig.find({asset_category: req.body.asset_category})
+                req.body.asset_category = Adata[0]
+            }
+            // TODO check conviction for updating the data (i.e $push or $set)
+            const updateuser = await User.findByIdAndUpdate({ _id: req.params.id }, 
+                { $push: {
+                    "username": req.body.username,
+                    "password": req.body.password,
+                    "first_name": req.body.first_name,
+                    "middle_name": req.body.middle_name,
+                    "last_name": req.body.last_name,
+                    "mobile_phone": req.body.mobile_phone,
+                    "email_id": req.body.email_id,
+                    "company_name": req.body.company_name,
+                    "role": req.body.role,
+                    "note": req.body.note,
+                    "interfaces": req.body.interfaces,
+                    "asset_category": req.body.asset_category,
+                    "asset_list": req.body.asset_list 
+                }},
+                { new: true })
+            console.log(updateuser)
+            const up = await updateuser.save();
+            return res.status(200).json(up);
+    
+        }
+        return new Error({error: "update fields cannot be empty"})
 
+        
     } catch (error) {
-        return console.log(error.message)
+        return new Error(error.message)
 
     }
 
@@ -81,6 +116,7 @@ const updateUser = async(req, res) => {
 // Delete user
 const deleteUser = async(req, res) => {
     try {
+        // await User.deleteOne({_id:req.params.id})
         await User.findByIdAndDelete({ "_id": req.params.id }, (err, result) => {
             if (result) {
                 return res.status(200).json({ "message": "user deleted successfully" })
@@ -158,7 +194,6 @@ const getAsset = async(req, res) => {
 
 // add asset
 const addAsset = async(req, res) => {
-    // TODO New Asset asset config,location, category 
     try {
         const newAasset = new Asset(req.body)
         const assetData = await newAasset.save();
@@ -191,6 +226,16 @@ const deleteAsset = async(req, res) => {
 // add asset category
 const addAssetCategory = async(req, res) => {
     try {
+        let udata = []
+
+        if(req.body.asset_list){
+            for (let i=0; i<req.body.asset_list.length;i++){
+                const updateasset = await Asset.find({ asset_name: req.body.asset_list[i] })
+                udata.push(updateasset[0]) 
+            }
+            req.body.asset_list = udata
+        }
+
         const addassetcategory = new assetsconfig(req.body)
         const assetcategorydata = await addassetcategory.save()
         res.status(201).json(assetcategorydata)
@@ -208,7 +253,7 @@ const getAssetCategory = async(req, res) => {
             if (assetdata === null) return res.status(404).json({ msg: "No category Found" })
             return res.send(assetdata)
         }
-        const getassetcategory = await assetsconfig.find({})
+        const getassetcategory = await assetsconfig.find({}).populate('asset_list')
         if (getassetcategory.length == 0) return res.status(404).json({ msg: "assetcategory not found" })
 
         res.status(200).json(getassetcategory)
@@ -219,36 +264,69 @@ const getAssetCategory = async(req, res) => {
 
 // update asset category
 const updateAssetCategory = async(req, res) => {
-    TODO //rework on update logic
+    //TODO rework on update logic
     try {
-        let objId = []
-            // const ogdata = req.body
-        if (req.body.asset_list) {
+        if (req.body) {
+            let udata = []
+            let list = {}
+            let newdata = req.body.asset_list
+            let nonsimilardata, similardata = []
+            // TODO add data check condition for already existing asset in asset category
 
-            const updateasset = await Asset.find({ asset_name: req.body.asset_list.asset_name })
-            console.log(updateasset.length)
-            if (updateasset.length == 1) {
-                objId.push(String(updateasset[0]._id))
+            // Old asset Category data
+            const oldAssetCategoryData = await assetsconfig.find({_id: req.params.id})
+            const oldAssetData = oldAssetCategoryData[0].asset_list
 
-            } else {
-                for (let i = 0; i < updateasset.length; i++) {
-                    objId.push(String(updateasset[i]._id))
-                        // req.body.asset_list.asset_name[i] = objId[i]
-                        // console.log(objId[i])
+            // checking similar asset data in asset_list to avoid redundency //
 
+            // filtering old asset_list name into a new list
+            for(let i=0; i<oldAssetData.length; i++){
+                list[i] = oldAssetData[i].asset_name
+            }
+            obj1 = Object.values(list)
+
+            // comparing and assigning the largest list length to lenght variable
+            if (newdata.length > oldAssetData.length){
+                length = newdata.length
+            }else{
+                length = oldAssetData.length
+            }
+
+            // checking redendancy in the data
+            for (let i=0; i<length;i++){
+                if(obj1.includes(newdata[i]) != true){
+                    nonsimilardata.push(newdata[i])
+                }else{
+                    similardata.push(newdata[i])
                 }
             }
-            console.log(req.body)
-            console.log(objId)
+            if(nonsimilardata !== undefined){
+                if (nonsimilardata.length > 1) {
+                    for (let i in nonsimilardata) {
+                        const updateasset = await Asset.find({ asset_name: nonsimilardata[i] })
+                        udata.push(updateasset[0]) 
+                    }
+                    req.body.asset_list = udata
+                    console.log(req.body.asset_list)
+                } else {
+                    const updateasset = await Asset.find({ asset_name: nonsimilardata })
+                    req.body.asset_list = updateasset[0]
+                }
 
-        }
-        // console.log(ogdata)
-
-
-        const updateassetcategory = await assetsconfig.findByIdAndUpdate({ _id: req.params.id, "asset_list._id": objId }, { $push: req.body }, { new: true })
-        console.log(updateassetcategory)
-        const uac = await updateassetcategory.save();
-        res.status(200).json(uac)
+                const updateassetcategory = await assetsconfig.findOneAndUpdate({ _id: req.params.id }, 
+                    { $push: {
+                        "asset_category": req.body.asset_category,
+                        "asset_list": req.body.asset_list
+                    } }, 
+                    { new: true })
+                console.log(updateassetcategory)
+                const uac = await updateassetcategory.save();
+                return res.status(200).json(uac)
+            }
+            return res.status(422).json({msg:"asset list already exits"})
+        } 
+        return res.status(400).json({msg:"request body cannot be empty"})
+        
     } catch (error) {
         return new Error(error)
     }
@@ -333,12 +411,38 @@ const updateMachine = async(req, res) => {
 // get schedular
 const getSchedular = async(req, res) => {
     try {
+        if(req.query.asset_category){
+            const schedular = await Schedular.find({ asset_category: req.query.asset_category });
+            const total = schedular.length;
+    
+            if (total == 0) return res.status(404).json({ msg: "no schedules found" })
+    
+            res.status(200).json({ Schedules: schedular, total: total })
+        }
+
         const schedular = await Schedular.find({});
         const total = schedular.length;
 
         if (total == 0) return res.status(404).json({ msg: "no schedules found" })
 
         res.status(200).json({ Schedules: schedular, total: total })
+    } catch (error) {
+        return new Error(error)
+    }
+}
+
+// get a schedule
+const getOneSchedule = async(req,res)=>{
+    try {
+        if(req.params.id){
+            const schedular = await Schedular.find({_id: req.params.id});
+            const total = schedular.length;
+    
+            if (total == 0) return res.status(404).json({ msg: "no schedule found" })
+    
+            res.status(200).json({ Schedule: schedular })
+        }
+        return res.status(400).json({msg: "id cannot be empty"})
     } catch (error) {
         return new Error(error)
     }
@@ -455,4 +559,69 @@ const deleteLocation = async(req, res) => {
     }
 }
 
-module.exports = { getUsers, addUser, updateUser, deleteUser, addRole, getRoles, deleteRole, getAsset, addAsset, deleteAsset, addAssetCategory, getAssetCategory, deleteAssetCategory, updateAssetCategory, addMachine, getMachine, deleteMachine, updateMachine, getSchedular, addSchedular, updateSchedular, deleteSchedular, addLocation, getLocation, updateLocation, deleteLocation }
+//////////////////////////////////////////////////// Checklist Section ///////////////////////////////////////////////
+
+// get checklists
+const getChecklist = async(req,res) => {
+    try {
+
+        if(req.query.machine_name){
+            const getchecklist = await checklist.find({machine_name: req.query.machine_name})
+            const total = getchecklist.length
+
+            if(total == 0) return res.status(404).json({msg: "no checklist found"})
+
+            return res.status(200).json({checklist: getchecklist, total: total})
+        }
+        const getchecklist = await checklist.find({})
+        const total = getchecklist.length
+
+        if(total == 0) return res.status(404).json({msg: "no checklist found"})
+
+        return res.status(200).json({checklist: getchecklist, total: total})
+
+    } catch (error) {
+        return new Error(error)
+    }
+}
+
+// get one checklist
+const getOneChecklist = async(req,res) => {
+    try {
+        if(req.params.id){
+            const getonechecklist = await checklist.find({_id: req.params.id})
+            const total = getonechecklist.length
+            if(total == 0) return res.status(404).json({msg: "no checklist found"})
+    
+            return res.status(200).json({checklist: getonechecklist}) 
+        }
+        return res.status(400).json({msg:"id cannot be empty"})
+    } catch (error) {
+        return new Error(error)
+    }
+}
+
+// add checklist
+const addChecklist = async(req,res) => {
+    // TODO add checklist logic and with dynamic tasklist addition
+    try {
+
+        // if tasklist exists in req body, create new tasklist
+        // check if tasklist already exists?
+        if(req.body.checklist){
+            const tasklistdata = req.body.checklist
+            console.log(tasklistdata.length)
+            for (let i in tasklistdata){
+                const newtasklist = new tasklist({task: tasklistdata[i]})
+                const savetasklist = await newtasklist.save()
+            }
+        }
+
+        // get id of newly created tasklist and push it to req.body.checklist array/list
+
+        const newchecklist = new checklist()
+    } catch (error) {
+        return new Error(error)
+    }
+}
+module.exports = { getUsers, addUser, updateUser, deleteUser, addRole, getRoles, deleteRole, getAsset, addAsset, deleteAsset, addAssetCategory, getAssetCategory, deleteAssetCategory, updateAssetCategory, addMachine, getMachine, deleteMachine, updateMachine, getSchedular, getOneSchedule, addSchedular, updateSchedular, deleteSchedular, addLocation, getLocation, updateLocation, deleteLocation, getChecklist, getOneChecklist, addChecklist}

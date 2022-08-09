@@ -1,6 +1,8 @@
 const { Ticket } = require('../Models/ticket.models')
 const { findUser } = require('../Middleware/checkAuth.middleware')
 
+// TODO Create 2 seprate tickets Trouble ticket and Schedular Ticket
+
 //////////////////////////////////////////////////// Admin Section ////////////////////////////////////////////////////
 
 // get tickets
@@ -46,11 +48,16 @@ const getTickets = async(req,res)=>{
 const getOneTicket = async(req,res) => {
     try {
         const ticketid = req.params.ticketid
+        if(ticketid != null){
+            const ticket = await Ticket.findOne({_id: ticketid})
+            if (!ticket) return res.status(404).json({msg:"no tickets found"})
+    
+            return res.status(200).json({ticket:ticket})
+        }
+        else{
+            return res.status(400).json({msg:"ticketId cannot be empty"})
+        }
 
-        const ticket = await Ticket.findOne({_id: ticketid})
-        if (!ticket) return res.status(404).json({msg:"no tickets found"})
-
-        return res.status(200).json({ticket:ticket})
     } catch (error) {
         return new Error(error)
     }
@@ -106,8 +113,8 @@ const addRequesteeTicket = async(req,res) => {
         const newTicket = new Ticket(req.body)
         const username = req.valid.username  // data retrived from token
         const user = await findUser(username)
-        const userid = user._id
-        newTicket.client_id = userid
+        newTicket.client_id = user._id
+        newTicket.ticket_type = "trouble"
         const ticketData = await newTicket.save()
         if (ticketData === null) return res.status(501).json({msg:"unable to create ticket, try again"})
         return res.status(201).json({msg: "ticket created successfully"})
@@ -134,35 +141,23 @@ const updateRequesteeTicket = async(req,res) => {
 const updatestatusRequesteeTicket = async(req,res) => {
     // TODO rework on update logic
     try {
-        const {status, reason, escalated, escalated_reason} = req.body
         const id = req.params.ticketid
         const updateBlock = {}
 
-        const ticket = await Ticket.findOne({_id: id})
-        if(status){
-            if(status === "escalate"){
-                updateBlock["status"] = status
-                updateBlock["escalated"] = "open"
-                console.log(updateBlock)
-            }
-            updateBlock["status.$"] = status
+        if(req.body.status){
+            if(status === "escalate") req.body.escalated = "open";
+
+            updateBlock["status"] = req.body.status
         }
 
-        // escalate if status = pending state reaches deadline
-        // if (escalated){
-        //     const ticketStatus = ticket.status
-            
-        // }
-
-        const updateTicket = await Ticket.findOneAndUpdate({_id: id},{ updateBlock },{new:true})
+        const updateTicket = await Ticket.findOneAndUpdate({_id: id}, req.body ,{new:true})
 
         if (updateTicket){
-            updateTicket.save()
+            await updateTicket.save()
             return res.status(200).json({msg:"ticket has been updated"})
         }else{
             return res.status(400).json({msg:"an error occured, try again"})
         }
-        return res.status(404).json({msg: "Ticket not found"})
     } catch (error) {
         
     }

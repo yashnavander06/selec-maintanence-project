@@ -1,5 +1,5 @@
-const { validateToken, decodeToken } = require('../Middleware/jsonToken.middleware')
-const { User } = require('../Models/users.model')
+const { validateToken } = require('../Middleware/jsonToken.middleware')
+const { User, Role } = require('../Models/users.model')
 const config = require('../config.json')
 
 function checkRole(role) {
@@ -37,17 +37,34 @@ async function findUser(username) {
     }
 }
 
-function checkLoginRole(user) {
+async function getLoginRole(user) {
     if (user) {
-        if (user.role.name === config.ROLE.ADMIN) return config.ROLE.ADMIN
-        if (user.role.name === config.ROLE.REQUESTEE) return config.ROLE.REQUESTEE
-        if (user.role.name === config.ROLE.DEPARTMENT_HEAD) return config.ROLE.DEPARTMENT_HEAD
-        if (user.role.name === config.ROLE.DESIGN) return config.ROLE.DESIGN
-        if (user.role.name === config.ROLE.MANAGEMENT) return config.ROLE.MANAGEMENT
-        if (user.role.name === config.ROLE.TECHNICIAN_EXTERNAL) return config.ROLE.TECHNICIAN_EXTERNAL
-        if (user.role.name === config.ROLE.TECHNICIAN_INTERNAL) return config.ROLE.TECHNICIAN_INTERNAL
+        let role = await Role.find({_id: user.role})
+        role = role[0]
+
+        if (role.name === config.ROLE.REQUESTEE) return config.ROLE.REQUESTEE
+        if (role.name === config.ROLE.DEPARTMENT_HEAD) return config.ROLE.DEPARTMENT_HEAD
+        if (role.name === config.ROLE.ADMIN) return config.ROLE.ADMIN
+        if (role.name === config.ROLE.DESIGN) return config.ROLE.DESIGN
+        if (role.name === config.ROLE.MANAGEMENT) return config.ROLE.MANAGEMENT
+        if (role.name === config.ROLE.TECHNICIAN_EXTERNAL) return config.ROLE.TECHNICIAN_EXTERNAL
+        if (role.name === config.ROLE.TECHNICIAN_INTERNAL) return config.ROLE.TECHNICIAN_INTERNAL
     }
     return new Error("Role Not Found")
+}
+
+function getInterface(user){
+    try {
+        if (user){
+            let interface = user.interface
+            if(interface === config.INTERFACE.APP) return config.INTERFACE.APP
+            if(interface === config.INTERFACE.EMAIL) return config.INTERFACE.EMAIL
+            if(interface === config.INTERFACE.WEBAPP) return config.INTERFACE.WEBAPP
+        }
+        return new Error("Interface Not Found")
+    } catch (error) {
+        return new Error(error)
+    }
 }
 
 function checkAuth(req, res, next) {
@@ -69,4 +86,4 @@ function checkAuth(req, res, next) {
 
 }
 
-module.exports = { checkAuth, checkRole, findUser, checkLoginRole }
+module.exports = { checkAuth, checkRole, findUser, getLoginRole, getInterface }

@@ -41,3 +41,7 @@ Content-Type: application/json
     "username":"Dummyuser",
     "password":"1234"
 }
+
+###
+GET  http://localhost:3000/admin/assets HTTP/1.1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6IkR1bW15dXNlciIsInJvbGUiOnt9LCJpYXQiOjE2NjAwMzM0MTMsImV4cCI6MTY2MDAzMzg5M30.IT1QtaeQHhZRd0t3pJpgUXvt8TcthenghnO9a7TonAg

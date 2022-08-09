@@ -6,7 +6,11 @@ const assetData = new Schema({
         type: String,
         // require: true,
         unique: true
-    }
+    },
+    location: String,
+    Asset_component_list: {
+        type: [String]
+    } // e.g area 1, area 2 or area 3
 }, { timestamps: true })
 
 const assetsConfig = new Schema({
@@ -20,10 +24,11 @@ const assetsConfig = new Schema({
         unique: true,
         // require: true
     },
-    asset_list: [assetData],
+    // asset_list: [assetData.get(asset_name)],
     template_master: {
         type: Schema.Types.ObjectId,
-        ref: "machineData"
+        ref: "machineData",
+        default: null
     }
 }, { timestamps: true })
 

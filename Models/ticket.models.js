@@ -1,9 +1,12 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
+// TODO Create 2 seprate tickets Trouble ticket and Schedular Ticket
+
 const ticket = Schema({
     client_id: {
-        type: Schema.Types.ObjectId
+        type: Schema.Types.ObjectId,
+        ref: "user"
     },
     subject: {
         type: String,
@@ -60,7 +63,20 @@ const ticket = Schema({
         type: Date,
         require: true,
         default: null
+    },
+    ticket_type:{
+        type: String,
+        require: true,
+        default: "schdule"
     }
+})
+
+ticket.pre('deleteOne',{ document: false, query: true }, async function(next){
+    const doc = await this.model.findOne(this.getFilter())
+    if (doc === null) next()
+    
+    await this.model.findByIdAndDelete(this.getFilter()).exec()
+    next()
 })
 
 module.exports = {Ticket: mongoose.model("ticket", ticket)}
