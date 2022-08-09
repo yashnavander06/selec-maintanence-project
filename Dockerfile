@@ -8,4 +8,5 @@ ADD ./Controllers ./
 ADD ./Models ./
 ADD ./Middleware ./
 ADD ./Routes ./
+ADD ./Helper ./
 CMD [ "node", "app.js"]

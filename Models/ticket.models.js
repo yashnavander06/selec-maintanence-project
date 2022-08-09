@@ -64,10 +64,26 @@ const ticket = Schema({
         require: true,
         default: null
     },
-    ticket_type:{
+    ticket_type: {
         type: String,
         require: true,
         default: "schdule"
+    },
+    asset_name: {
+        type: Schema.Types.ObjectId,
+        ref: "assetData"
+    },
+    accepted: {
+        type: Boolean,
+        default: false
+    },
+    accepted_by: {
+        type: Schema.Types.ObjectId,
+        ref: "user"
+    },
+    location: {
+        type: String
+        // eg area 1 or area 2
     }
 })
 
