@@ -1,8 +1,6 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
-// TODO Create 2 seprate tickets Trouble ticket and Schedular Ticket
-
 const ticket = Schema({
     client_id: {
         type: Schema.Types.ObjectId,

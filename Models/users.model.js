@@ -2,78 +2,78 @@ const mongoose = require("mongoose");
 const { Ticket } = require("./ticket.models");
 const Schema = mongoose.Schema;
 
-const role = new Schema(
-  {
-    name: {
-      type: String,
-      index: true,
-    },
+const role = new Schema({
+  name: {
+    type: String,
+    index: true,
   },
-);
+});
 
-const user = new Schema(
-  {
-    user_id: {
-      type: Number,
-      require: true,
-      unique: true,
-      index: true,
-    },
-    username: {
-      type: String,
-      require: true,
-      unique: true,
-    },
-    password: {
-      type: String,
-      require: true,
-    },
-    first_name: {
-      type: String,
-      require: true,
-    },
-    middle_name: String,
-    last_name: String,
-    mobile_phone: {
-      type: Number,
-      unique: true,
-      range: 10,
-    },
-    email_id: {
-      type: String,
-      require: true,
-      trim: true,
-      lowercase: true,
-      unique: true,
-      match: [
-        /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
-        "Please enter a valid email address",
-      ],
-    },
-    company_name: {
-      type: String,
-      require: true,
-    },
-    role: {
-      type: Schema.Types.ObjectId,
-      ref: 'role'
-    },
-    note: String,
-    interface: String,
-    asset_category: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "assetsConfig",
-      },
-    ],
-    skills:[
-      {
-        type: Schema.Types.ObjectId,
-        ref: "assetData"
-      }
-    ]
+const user = new Schema({
+  user_id: {
+    type: Number,
+    require: true,
+    unique: true,
+    index: true,
   },
-  { timestamps: true }
+  username: {
+    type: String,
+    require: true,
+    unique: true,
+  },
+  password: {
+    type: String,
+    require: true,
+  },
+  first_name: {
+    type: String,
+    require: true,
+  },
+  middle_name: String,
+  last_name: String,
+  mobile_phone: {
+    type: Number,
+    unique: true,
+    range: 10,
+  },
+  email_id: {
+    type: String,
+    require: true,
+    trim: true,
+    lowercase: true,
+    unique: true,
+    match: [
+      /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
+      "Please enter a valid email address",
+    ],
+  },
+  company_name: {
+    type: String,
+    require: true,
+  },
+  role: {
+    type: Schema.Types.ObjectId,
+    ref: 'role'
+  },
+  note: String,
+  interface: String,
+  asset_category: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "assetsConfig",
+    },
+  ],
+  skills:[
+    {
+      type: Schema.Types.ObjectId,
+      ref: "assetData"
+    }
+  ],
+  location:{
+    type: Schema.Types.ObjectId,
+    ref: 'location'
+  }
+  }, { timestamps: true }
 );
 
 user.pre('deleteOne', { query: true, document: false },async function(next){

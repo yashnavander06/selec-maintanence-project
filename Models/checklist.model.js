@@ -21,10 +21,11 @@ const taskList = new Schema({
     },
     remark: String,
     image: images,
-    final_status: {
-        type: String,
-        require: true
-    }
+    checklist_id: [{
+        type: Schema.Types.ObjectId,
+        ref: 'checkList',
+    }]
+    
 }, { timestamps: true })
 
 const checkList = new Schema({
@@ -34,7 +35,10 @@ const checkList = new Schema({
         require: true
     },
     date: Date,
-    checklist: taskList
+    checklist: [taskList],
+    checklist_status: {
+        type: String,
+    }
 
 }, { timestamps: true })
 

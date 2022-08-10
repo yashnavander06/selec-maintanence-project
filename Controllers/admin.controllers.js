@@ -15,21 +15,20 @@ const getUsers = async(req, res) => {
     try {
         let keys = req.query.user_id
         if (keys) {
-            const user = await User.findOne({ user_id: keys }).populate('role','name').populate('asset_category').populate('skills').exec()
+            const user = await User.findOne({ user_id: keys }).populate('role','name').populate('asset_category','asset_category').populate('skills','asset_name').exec()
             if (user === null) return res.status(404).json({ msg: "No user Found" })
             return res.send(user)
         }
         let role = req.query.role
         if (role) {
-
             const roleid = await Role.find({name: role})
             role = roleid[0]._id.toString()
-            const userrole = await User.find({"role":role}).populate('role','name').populate('asset_category').populate('skills').exec()
+            const userrole = await User.find({"role":role}).populate('role','name').populate('asset_category','asset_category').populate('skills','asset_name').exec()
             const total = userrole.length;
             if (userrole === null) return res.status(404).json({ msg: `No user with role: ${role} was found` })
             return res.status(200).send({ users: userrole, total: total })
         }
-        const users = await User.find({}).populate('role','name').populate('asset_category').populate('skills').exec();
+        const users = await User.find({}).populate('role','name').populate('asset_category','asset_category').populate('skills','asset_name').exec();
         const total = await User.count({});
         if (users.length == 0) return res.status(404).json({ msg: "No users Found" })
 
@@ -77,6 +76,10 @@ const addUser = async(req, res) => {
                 req.body.skills = skills[0]
             }
             
+        }
+
+        if(req.body.location){
+            let addlocation = await Location.find({})
         }
 
         const newUser = new User(req.body)
@@ -365,50 +368,29 @@ const updateAssetCategory = async(req, res) => {
     try {
         if (req.body) {
             let udata = []
-            let list = []
             let newdata = req.body.asset_list
-            let nonsimilardata=[] 
-            similardata = []
-            let length = 0
-
             // Old asset Category data
+
             const oldAssetCategoryData = await assetsconfig.find({_id: req.params.id})
             const oldAssetData = oldAssetCategoryData[0].asset_list
 
-            // checking similar asset data in asset_list to avoid redundency //
-            // TODO replace code with helper
+            // checking similar asset data in asset_list to avoid redundency 
 
-            // filtering old asset_list name into a new list
-            for(let i=0; i<oldAssetData.length; i++){
-                list[i] = oldAssetData[i].asset_name
-            }
-            obj1 = Object.values(list)
+            // checks the largest length amongest old and new data array
+            let {length, obj} = getLength(oldAssetData, newdata)
 
-            // comparing and assigning the largest list length to lenght variable
-            if (newdata.length >= oldAssetData.length){
-                length = newdata.length
-            }else{
-                length = oldAssetData.length
-            }
+            // checks for redundant value and returns nonredundant values
+            let nonRedundant = checkReduncancy(length,obj,newdata)
 
-            // checking redendancy in the data
-            for (let i=0; i<length;i++){
-                if(obj1.includes(newdata[i]) == false){
-                    nonsimilardata.push(newdata[i])
-                }else{
-                    similardata.push(newdata[i])
-                }
-            }
-
-            if(nonsimilardata !== undefined){
-                if (nonsimilardata.length > 1) {
-                    for (let i in nonsimilardata) {
-                        const updateasset = await Asset.find({ asset_name: nonsimilardata[i] })
+            if(nonRedundant !== undefined){
+                if (nonRedundant.length > 1) {
+                    for (let i in nonRedundant) {
+                        const updateasset = await Asset.find({ asset_name: nonRedundant[i] })
                         udata.push(updateasset[0]) 
                     }
                     req.body.asset_list = udata
                 } else {
-                    const updateasset = await Asset.find({ asset_name: nonsimilardata })
+                    const updateasset = await Asset.find({ asset_name: nonRedundant })
                     req.body.asset_list = updateasset[0]
                 }
 
@@ -546,7 +528,7 @@ const getOneSchedule = async(req,res)=>{
         return new Error(error)
     }
 }
-
+ 
 // add schedular
 const addSchedular = async(req, res) => {
     try {
@@ -707,18 +689,27 @@ const addChecklist = async(req,res) => {
 
         // if tasklist exists in req body, create new tasklist
         // check if tasklist already exists?
-        if(req.body.checklist){
-            const tasklistdata = req.body.checklist
-            console.log(tasklistdata.length)
-            for (let i in tasklistdata){
-                const newtasklist = new tasklist({task: tasklistdata[i]})
-                const savetasklist = await newtasklist.save()
-            }
-        }
+        // create the new tasklist if tasklist doesnot exists 
+        // store newly added tasklist's id to a list
+        // find the existing tasklist and append the tasklist's id to a list
+        // find machine from machine table and replace it with req.body.machine
+        // finally create the checklist and save
+
+
+
+
+        // if(req.body.checklist){
+        //     const tasklistdata = req.body.checklist
+        //     console.log(tasklistdata.length)
+        //     for (let i in tasklistdata){
+        //         const newtasklist = new tasklist({task: tasklistdata[i]})
+        //         const savetasklist = await newtasklist.save()
+        //     }
+        // }
 
         // get id of newly created tasklist and push it to req.body.checklist array/list
 
-        const newchecklist = new checklist()
+        // const newchecklist = new checklist()
     } catch (error) {
         return new Error(error)
     }
