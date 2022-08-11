@@ -135,6 +135,7 @@ const addRequesteeTicket = async(req,res) => {
 
 // update ticket
 const updateRequesteeTicket = async(req,res) => {
+    // TODO rework on update logic
     try {
         
         await Ticket.findOneAndUpdate({_id: req.params.id},req.body,{new:true},(err,result) => {
@@ -149,7 +150,6 @@ const updateRequesteeTicket = async(req,res) => {
 
 // close ticket
 const updatestatusRequesteeTicket = async(req,res) => {
-    // TODO rework on update logic
     try {
         const id = req.params.ticketid
         

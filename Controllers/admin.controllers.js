@@ -124,7 +124,7 @@ const updateUser = async(req, res) => {
                     let {length, obj} = getLength(category, assetCategory)
 
                     // checks for redundant value and returns nonredundant values
-                    let nonRedundant = checkReduncancy(length,obj,assetCategory)
+                    let {nonRedundant} = checkReduncancy(length,obj,assetCategory)
 
                     if(nonRedundant !== undefined){
                         let data = []
@@ -380,7 +380,7 @@ const updateAssetCategory = async(req, res) => {
             let {length, obj} = getLength(oldAssetData, newdata)
 
             // checks for redundant value and returns nonredundant values
-            let nonRedundant = checkReduncancy(length,obj,newdata)
+            let {nonRedundant} = checkReduncancy(length,obj,newdata)
 
             if(nonRedundant !== undefined){
                 if (nonRedundant.length > 1) {
@@ -546,7 +546,6 @@ const updateSchedular = async(req, res) => {
 }
 
 // delete schedular
-
 const deleteSchedular = async(req, res) => {
     try {
         await Schedular.findByIdAndDelete({ _id: req.params.id }, (err, result) => {
@@ -684,32 +683,67 @@ const getOneChecklist = async(req,res) => {
 
 // add checklist
 const addChecklist = async(req,res) => {
-    // TODO add checklist logic and with dynamic tasklist addition
+    // TODO test this route
     try {
 
-        // if tasklist exists in req body, create new tasklist
-        // check if tasklist already exists?
-        // create the new tasklist if tasklist doesnot exists 
-        // store newly added tasklist's id to a list
-        // find the existing tasklist and append the tasklist's id to a list
-        // find machine from machine table and replace it with req.body.machine
-        // finally create the checklist and save
+        //  find machine exists? yes then proceed further else return false
+        if(req.body.machine_name){
 
+            // find machine from machine table and replace it with req.body.machine
+            const machine = await machinedata.find({model_name: req.body.machine_name})
+            if (machine.length == 0) return res.status(404).json({msg: "machine not found"})           
+            req.body.machine = machine
 
+            // if tasklist exists in req body
+            if(req.body.checklist){
+                const newchecklist = req.body.checklist
 
+                // check if tasklist already exists?
+                
+                const oldtasklist = tasklist.find({})
+                
+                // checks the largest length amongest old and new data array
+                let {length,obj} =  getLength(oldtasklist,newchecklist)
 
-        // if(req.body.checklist){
-        //     const tasklistdata = req.body.checklist
-        //     console.log(tasklistdata.length)
-        //     for (let i in tasklistdata){
-        //         const newtasklist = new tasklist({task: tasklistdata[i]})
-        //         const savetasklist = await newtasklist.save()
-        //     }
-        // }
+                // checks for redundant value and returns nonredundant and redendant values
+                let {nonRedundant,redundant} = checkReduncancy(length,obj,newchecklist)
 
-        // get id of newly created tasklist and push it to req.body.checklist array/list
+                let taskid = []
+                if (nonRedundant.length != 0 && redundant.length != 0){
+                    // create the new tasklist if tasklist doesnot exists 
+                    for(let i in nonRedundant){
+                        const newtask = new tasklist(nonRedundant[i])
+                        await newtask.save()
 
-        // const newchecklist = new checklist()
+                        // store newly added tasklist's id to a list
+                        taskid.push(newtask._id)
+                    }
+
+                    // find the existing tasklist and append the tasklist's id to a list
+                    for (let i in redundant){
+                        const oldtask = await tasklist.find({task: redundant[i]})
+                        taskid.push(oldtask[0]._id)
+                    }
+
+                // find the existing tasklist and append the tasklist's id to a list    
+                }else if(redundant){
+                    for (let i in redundant){
+                        const oldtask = await tasklist.find({task: redundant[i]})
+                        taskid.push(oldtask[0]._id)
+                    }
+                }
+
+                req.body.checklist = taskid
+            }
+
+            // finally create the checklist and save
+            const newchecklist = new checklist(req.body)
+            await newchecklist.save()
+            return res.status(201).json({msg: "checklist added successfully"})
+
+        }else{
+            return res.status(401).json({msg: "machine name cannot be empty"})
+        }
     } catch (error) {
         return new Error(error)
     }
