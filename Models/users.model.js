@@ -72,6 +72,7 @@ const user = new Schema(
         ref: "assetData"
       }
     ]
+    
   },
   { timestamps: true }
 );
