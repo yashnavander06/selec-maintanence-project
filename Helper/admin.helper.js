@@ -1,5 +1,3 @@
-//  TODO complete helper logic of admin
-
 const getLength = (olddata,newdata) =>{
     try {
         let datalength = 0
@@ -38,21 +36,20 @@ const checkReduncancy = (length, obj1, newdata) =>{
     try {
         // checking redendancy in the data
         let nonsimilardata = []
-        for (let i=0; i<length;i++){
-            if(obj1.includes(newdata[i]) == false){
-                nonsimilardata.push(newdata[i])
-            }
-        }
-        return nonsimilardata
-        
         let similardata = []
         for (let i=0; i<length;i++){
             if(obj1.includes(newdata[i]) == false){
                 nonsimilardata.push(newdata[i])
+            }else{
+                similardata.push(newdata[i])
             }
         }
-        return similardata
-       
+
+        return {
+            nonsimilardata: nonsimilardata,
+            similardata: similardata
+        }
+
     } catch (error) {
         return new Error(error)
     }

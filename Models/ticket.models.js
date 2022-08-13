@@ -1,8 +1,6 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
-// TODO Create 2 seprate tickets Trouble ticket and Schedular Ticket
-
 const ticket = Schema({
     client_id: {
         type: Schema.Types.ObjectId,
@@ -65,7 +63,7 @@ const ticket = Schema({
         require: true,
         default: null
     },
-    ticket_type:{
+    ticket_type: {
         type: String,
         require: true,
         default: "schdule"
@@ -79,9 +77,16 @@ const ticket = Schema({
         type: Boolean,
         default: false
     },
-    accepted_by:{
+
+    accepted_by: {
         type: Schema.Types.ObjectId,
-        ref: "user"
+        ref: "user",
+        default: null
+    },
+    location: {
+        type: String
+        // eg area 1 or area 2
+
     }
 })
 

@@ -1,5 +1,6 @@
 const { Ticket } = require('../Models/ticket.models')
 const { findUser } = require('../Middleware/checkAuth.middleware')
+const { Asset } = require('../Models/assets.model')
 
 // TODO Create 2 seprate tickets Trouble ticket and Schedular Ticket
 
@@ -80,7 +81,7 @@ const getRequesteeTickets = async(req,res) => {
             if (ticket.length === 0) return res.status(404).json({msg:"no tickets found"})
             return res.status(200).json({data:ticket})
         }
-        const tickets = await Ticket.find({client_id: userid})
+        const tickets = await Ticket.find({client_id: userid}).populate("asset_name").exec()
         const total = tickets.length
         if (total === 0) return res.status(404).json({msg:"no tickets found"})
 
@@ -110,11 +111,20 @@ const getRequesteeOneTicket = async(req,res) => {
 // add ticket
 const addRequesteeTicket = async(req,res) => {
     try {
-        const newTicket = new Ticket(req.body)
         const username = req.valid.username  // data retrived from token
         const user = await findUser(username)
-        newTicket.client_id = user._id
-        newTicket.ticket_type = "trouble"
+
+        req.body.client_id = user._id
+        req.body.ticket_type = "trouble"
+
+        if(req.body.asset_name){
+            const assetid = await Asset.find({asset_name: req.body.asset_name})
+            req.body.asset_name = assetid[0]
+        }
+
+        const newTicket = new Ticket(req.body)
+        console.log(newTicket)
+
         const ticketData = await newTicket.save()
         if (ticketData === null) return res.status(501).json({msg:"unable to create ticket, try again"})
         return res.status(201).json({msg: "ticket created successfully"})
@@ -125,6 +135,7 @@ const addRequesteeTicket = async(req,res) => {
 
 // update ticket
 const updateRequesteeTicket = async(req,res) => {
+    // TODO rework on update logic
     try {
         
         await Ticket.findOneAndUpdate({_id: req.params.id},req.body,{new:true},(err,result) => {
@@ -139,16 +150,10 @@ const updateRequesteeTicket = async(req,res) => {
 
 // close ticket
 const updatestatusRequesteeTicket = async(req,res) => {
-    // TODO rework on update logic
     try {
         const id = req.params.ticketid
-        const updateBlock = {}
-
-        if(req.body.status){
-            if(status === "escalate") req.body.escalated = "open";
-
-            updateBlock["status"] = req.body.status
-        }
+        
+        if(req.body.status === "escalate") req.body.escalated = "open";
 
         const updateTicket = await Ticket.findOneAndUpdate({_id: id}, req.body ,{new:true})
 
@@ -159,7 +164,7 @@ const updatestatusRequesteeTicket = async(req,res) => {
             return res.status(400).json({msg:"an error occured, try again"})
         }
     } catch (error) {
-        
+        return new Error(error)
     }
 }
 

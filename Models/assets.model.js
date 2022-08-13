@@ -8,7 +8,12 @@ const assetData = new Schema({
         unique: true
     },
     location: String,
-    Asset_component_list: {
+    asset_category: {
+        type: String,
+        unique: true,
+        // require: true
+    },
+    asset_component_list: {
         type: [String]
     } // e.g area 1, area 2 or area 3
 }, { timestamps: true })
@@ -24,7 +29,7 @@ const assetsConfig = new Schema({
         unique: true,
         // require: true
     },
-    // asset_list: [assetData.get(asset_name)],
+    asset_list: [assetData],
     template_master: {
         type: Schema.Types.ObjectId,
         ref: "machineData",

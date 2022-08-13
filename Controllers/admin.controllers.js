@@ -15,18 +15,20 @@ const getUsers = async(req, res) => {
     try {
         let keys = req.query.user_id
         if (keys) {
-            const user = await User.findOne({ user_id: keys }).populate('role','name').populate('asset_category').populate('skills').exec()
+            const user = await User.findOne({ user_id: keys }).populate('role','name').populate('asset_category','asset_category').populate('skills','asset_name').exec()
             if (user === null) return res.status(404).json({ msg: "No user Found" })
             return res.send(user)
         }
         let role = req.query.role
         if (role) {
-            const userrole = await User.find({ "role.name": { $regex: role } }).populate('role','name').populate('asset_category').populate('skills').exec()
+            const roleid = await Role.find({name: role})
+            role = roleid[0]._id.toString()
+            const userrole = await User.find({"role":role}).populate('role','name').populate('asset_category','asset_category').populate('skills','asset_name').exec()
             const total = userrole.length;
             if (userrole === null) return res.status(404).json({ msg: `No user with role: ${role} was found` })
             return res.status(200).send({ users: userrole, total: total })
         }
-        const users = await User.find({}).populate('role','name').populate('asset_category').populate('skills').exec();
+        const users = await User.find({}).populate('role','name').populate('asset_category','asset_category').populate('skills','asset_name').exec();
         const total = await User.count({});
         if (users.length == 0) return res.status(404).json({ msg: "No users Found" })
 
@@ -76,6 +78,10 @@ const addUser = async(req, res) => {
             
         }
 
+        if(req.body.location){
+            let addlocation = await Location.find({})
+        }
+
         const newUser = new User(req.body)
         const saltRounds = await bcrypt.genSalt(10);
         newUser.password = await bcrypt.hash(newUser.password, saltRounds) 
@@ -88,21 +94,48 @@ const addUser = async(req, res) => {
 }
 
 // Update user
-const updateUser = async(req, res) => {
+const updateUser = async(req, res) => { 
     try {
-        // TODO rework on update assetlist and assetcategory
         if(req.body){
             if (req.body.role) {
                 req.body.role = await Role.find({name: req.body.role})
                 req.body.role = req.body.role[0]
             }
 
-            // TODO calculate lenght of the asset data and do the change accordingly
             if(req.body.asset_category){
+                let assetCategory = req.body.asset_category
+                let category = []
                 let Adata 
-                if(req.body.asset_category === "all"){
-                    Adata = await assetsconfig.find({})
-                    req.body.asset_category = Adata[0]
+                if(assetCategory >= 2){
+                    const oldcategorydata = await User.find({_id: req.params.id})
+                    const oldcategorydatas = oldcategorydata[0].asset_category
+
+                    if(oldcategorydatas.length >= 2){
+                        for(let i in oldcategorydatas){
+                            const Cdata = await assetsconfig.find({_id: oldcategorydatas[i]})
+                            category.push(Cdata[0])
+                        }
+                    }else{
+                        const Cdata = await assetsconfig.find({_id: oldcategorydatas})
+                        category.push(Cdata[0])
+                    }
+
+                    // checks the largest length amongest old and new data array
+                    let {length, obj} = getLength(category, assetCategory)
+
+                    // checks for redundant value and returns nonredundant values
+                    let {nonRedundant} = checkReduncancy(length,obj,assetCategory)
+
+                    if(nonRedundant !== undefined){
+                        let data = []
+                        for (let i in nonRedundant){
+                            config = await assetsconfig.find({asset_name: nonRedundant[i]})
+                            data.push(config[0]) 
+                        }
+                        req.body.asset_category = data
+                    }else{
+                        req.body.asset_category = ""
+                    }
                 }
                 Adata = await assetsconfig.find({asset_category: req.body.asset_category})
                 req.body.asset_category = Adata[0]
@@ -130,9 +163,10 @@ const updateUser = async(req, res) => {
 
                     // checks for redundant value and returns nonredundant values
                     let nonRedundant = checkReduncancy(length,obj,techskills)
+
                     if (nonRedundant !== undefined){
                         let data = []
-                        for (let i in techskills){
+                        for (let i in nonRedundant){
                             skills = await Asset.find({asset_name: nonRedundant[i]})
                             data.push(skills[0]) 
                         }
@@ -334,50 +368,29 @@ const updateAssetCategory = async(req, res) => {
     try {
         if (req.body) {
             let udata = []
-            let list = []
             let newdata = req.body.asset_list
-            let nonsimilardata=[] 
-            similardata = []
-            let length = 0
-
             // Old asset Category data
+
             const oldAssetCategoryData = await assetsconfig.find({_id: req.params.id})
             const oldAssetData = oldAssetCategoryData[0].asset_list
 
-            // checking similar asset data in asset_list to avoid redundency //
-            // TODO replace code with helper
+            // checking similar asset data in asset_list to avoid redundency 
 
-            // filtering old asset_list name into a new list
-            for(let i=0; i<oldAssetData.length; i++){
-                list[i] = oldAssetData[i].asset_name
-            }
-            obj1 = Object.values(list)
+            // checks the largest length amongest old and new data array
+            let {length, obj} = getLength(oldAssetData, newdata)
 
-            // comparing and assigning the largest list length to lenght variable
-            if (newdata.length >= oldAssetData.length){
-                length = newdata.length
-            }else{
-                length = oldAssetData.length
-            }
+            // checks for redundant value and returns nonredundant values
+            let {nonRedundant} = checkReduncancy(length,obj,newdata)
 
-            // checking redendancy in the data
-            for (let i=0; i<length;i++){
-                if(obj1.includes(newdata[i]) == false){
-                    nonsimilardata.push(newdata[i])
-                }else{
-                    similardata.push(newdata[i])
-                }
-            }
-
-            if(nonsimilardata !== undefined){
-                if (nonsimilardata.length > 1) {
-                    for (let i in nonsimilardata) {
-                        const updateasset = await Asset.find({ asset_name: nonsimilardata[i] })
+            if(nonRedundant !== undefined){
+                if (nonRedundant.length > 1) {
+                    for (let i in nonRedundant) {
+                        const updateasset = await Asset.find({ asset_name: nonRedundant[i] })
                         udata.push(updateasset[0]) 
                     }
                     req.body.asset_list = udata
                 } else {
-                    const updateasset = await Asset.find({ asset_name: nonsimilardata })
+                    const updateasset = await Asset.find({ asset_name: nonRedundant })
                     req.body.asset_list = updateasset[0]
                 }
 
@@ -515,7 +528,7 @@ const getOneSchedule = async(req,res)=>{
         return new Error(error)
     }
 }
-
+ 
 // add schedular
 const addSchedular = async(req, res) => {
     try {
@@ -533,7 +546,6 @@ const updateSchedular = async(req, res) => {
 }
 
 // delete schedular
-
 const deleteSchedular = async(req, res) => {
     try {
         await Schedular.findByIdAndDelete({ _id: req.params.id }, (err, result) => {
@@ -671,23 +683,67 @@ const getOneChecklist = async(req,res) => {
 
 // add checklist
 const addChecklist = async(req,res) => {
-    // TODO add checklist logic and with dynamic tasklist addition
+    // TODO test this route
     try {
 
-        // if tasklist exists in req body, create new tasklist
-        // check if tasklist already exists?
-        if(req.body.checklist){
-            const tasklistdata = req.body.checklist
-            console.log(tasklistdata.length)
-            for (let i in tasklistdata){
-                const newtasklist = new tasklist({task: tasklistdata[i]})
-                const savetasklist = await newtasklist.save()
+        //  find machine exists? yes then proceed further else return false
+        if(req.body.machine_name){
+
+            // find machine from machine table and replace it with req.body.machine
+            const machine = await machinedata.find({model_name: req.body.machine_name})
+            if (machine.length == 0) return res.status(404).json({msg: "machine not found"})           
+            req.body.machine = machine
+
+            // if tasklist exists in req body
+            if(req.body.checklist){
+                const newchecklist = req.body.checklist
+
+                // check if tasklist already exists?
+                
+                const oldtasklist = tasklist.find({})
+                
+                // checks the largest length amongest old and new data array
+                let {length,obj} =  getLength(oldtasklist,newchecklist)
+
+                // checks for redundant value and returns nonredundant and redendant values
+                let {nonRedundant,redundant} = checkReduncancy(length,obj,newchecklist)
+
+                let taskid = []
+                if (nonRedundant.length != 0 && redundant.length != 0){
+                    // create the new tasklist if tasklist doesnot exists 
+                    for(let i in nonRedundant){
+                        const newtask = new tasklist(nonRedundant[i])
+                        await newtask.save()
+
+                        // store newly added tasklist's id to a list
+                        taskid.push(newtask._id)
+                    }
+
+                    // find the existing tasklist and append the tasklist's id to a list
+                    for (let i in redundant){
+                        const oldtask = await tasklist.find({task: redundant[i]})
+                        taskid.push(oldtask[0]._id)
+                    }
+
+                // find the existing tasklist and append the tasklist's id to a list    
+                }else if(redundant){
+                    for (let i in redundant){
+                        const oldtask = await tasklist.find({task: redundant[i]})
+                        taskid.push(oldtask[0]._id)
+                    }
+                }
+
+                req.body.checklist = taskid
             }
+
+            // finally create the checklist and save
+            const newchecklist = new checklist(req.body)
+            await newchecklist.save()
+            return res.status(201).json({msg: "checklist added successfully"})
+
+        }else{
+            return res.status(401).json({msg: "machine name cannot be empty"})
         }
-
-        // get id of newly created tasklist and push it to req.body.checklist array/list
-
-        const newchecklist = new checklist()
     } catch (error) {
         return new Error(error)
     }
