@@ -44,13 +44,16 @@ const checkReduncancy = (length, obj1, newdata) =>{
                 similardata.push(newdata[i])
             }
         }
+
         return {
             nonsimilardata: nonsimilardata,
             similardata: similardata
         }
+
     } catch (error) {
         return new Error(error)
     }
 }
 
 module.exports = {getLength, checkReduncancy}
+
