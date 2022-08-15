@@ -111,12 +111,12 @@ routers.get('/ticket/:ticketid', checkAuth, checkRole(config.ROLE.ADMIN), Ticket
 //////////////////////////////////////////////////// Checklist Section ///////////////////////////////////////////////
 
 // get checklists
-routers.get('/checklist', adminControllers.getChecklist)
+routers.get('/checklist', checkAuth, checkRole(config.ROLE.ADMIN), adminControllers.getChecklist)
 
 // get one checklist
-routers.get('/checklist/:id', adminControllers.getOneChecklist)
+routers.get('/checklist/:id', checkAuth, checkRole(config.ROLE.ADMIN), adminControllers.getOneChecklist)
 
 // add checklist
-routers.post('/add_checklist', adminControllers.addChecklist)
+routers.post('/add_checklist', checkAuth, checkRole(config.ROLE.ADMIN), adminControllers.addChecklist)
 
 module.exports = routers;
