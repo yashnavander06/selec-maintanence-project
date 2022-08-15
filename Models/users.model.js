@@ -15,9 +15,6 @@ const user = new Schema({
     require: true,
     unique: true,
     index: true,
-    default: function(){
-      
-    }
   },
   username: {
     type: String,
