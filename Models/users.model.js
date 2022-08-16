@@ -46,7 +46,6 @@ const user = new Schema({
       /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/,
       "Please enter a valid email address",
     ],
-
   },
   company_name: {
     type: String,
