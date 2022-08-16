@@ -752,6 +752,16 @@ const addChecklist = async(req,res) => {
             const newchecklist = new checklist(req.body)
             // add checklist id to new tasklist after saving the checklist data 
             await newchecklist.save()
+
+            // post save opration
+            // update checklist_id attribute of tasklist after saving new checklist
+            let checklistid = newchecklist._id
+
+            for (let i in tasks){
+                const updatetasklist = await tasklist.findByIdAndUpdate({_id: tasks[i]._id},{$push: {checklist_id: checklistid}})
+                updatetasklist.save()
+            }
+
             return res.status(201).json({msg: "checklist added successfully"})
 
         }else{
