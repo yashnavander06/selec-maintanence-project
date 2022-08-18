@@ -6,13 +6,14 @@ const { checkAuth, checkRole } = require('../Middleware/checkAuth.middleware')
 const config = require('../config.json')
 const { upload } = require('../Middleware/imageUpload.middleware')
 
-routers.post('/upload', upload.single('image') ,technicianControllers.imageUpload);
+routers.post('/upload', upload.single('image'), technicianControllers.imageUpload);
 
-routers.get('/workorder',checkAuth, checkRole(config.ROLE.TECHNICIAN_INTERNAL),technicianControllers.workOrder);
-routers.get('/ticketdisplay',checkAuth, checkRole(config.ROLE.TECHNICIAN_INTERNAL),technicianControllers.ticketDisplay);
+routers.get('/workorder', checkAuth, checkRole(config.ROLE.TECHNICIAN_INTERNAL), technicianControllers.workOrder);
+routers.get('/ticketdisplay', checkAuth, checkRole(config.ROLE.TECHNICIAN_INTERNAL), technicianControllers.ticketDisplay);
 // update ticket
-routers.put('/updateTicket/:ticketid',TicketControllers.updateRequesteeTicket)
+routers.put('/updateTicket/:ticketid', checkAuth, checkRole(config.ROLE.TECHNICIAN_INTERNAL), TicketControllers.updateRequesteeTicket)
 
-// close ticket
-routers.patch('/acceptTicket/:ticketid',TicketControllers.updatestatusRequesteeTicket)
+
+// open/close ticket
+routers.patch('/acceptTicket/:ticketid', checkAuth, checkRole(config.ROLE.TECHNICIAN_INTERNAL), TicketControllers.updatestatusRequesteeTicket)
 module.exports = routers;
