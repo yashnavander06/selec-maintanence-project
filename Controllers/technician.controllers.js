@@ -129,7 +129,7 @@ const ticketAccept = async(req, res) => {
                 "accepted_by": userid
             }
         }, { new: true })
-        await accept.save()
+
         return res.status(200).send("accepted")
     } catch (error) {
         return res.status(500).json({ error: error })
