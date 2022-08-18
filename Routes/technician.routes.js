@@ -8,8 +8,8 @@ const config = require('../config.json')
 routers.get('/workorder',checkAuth, checkRole(config.ROLE.TECHNICIAN_INTERNAL),technicianControllers.workOrder);
 routers.get('/ticketdisplay',checkAuth, checkRole(config.ROLE.TECHNICIAN_INTERNAL),technicianControllers.ticketDisplay);
 // update ticket
-routers.put('/ticket/:ticketid',ticketControllers.updateRequesteeTicket)
+routers.put('/ticket/:ticketid',TicketControllers.updateRequesteeTicket)
 
 // close ticket
-routers.patch('/ticket/:ticketid',ticketControllers.updatestatusRequesteeTicket)
+routers.patch('/ticket/:ticketid',TicketControllers.updatestatusRequesteeTicket)
 module.exports = routers;
