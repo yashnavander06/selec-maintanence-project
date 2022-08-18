@@ -11,8 +11,8 @@ routers.post('/upload', upload.single('image') ,technicianControllers.imageUploa
 routers.get('/workorder',checkAuth, checkRole(config.ROLE.TECHNICIAN_INTERNAL),technicianControllers.workOrder);
 routers.get('/ticketdisplay',checkAuth, checkRole(config.ROLE.TECHNICIAN_INTERNAL),technicianControllers.ticketDisplay);
 // update ticket
-routers.put('/ticket/:ticketid',TicketControllers.updateRequesteeTicket)
+routers.put('/updateTicket/:ticketid',TicketControllers.updateRequesteeTicket)
 
 // close ticket
-routers.patch('/ticket/:ticketid',TicketControllers.updatestatusRequesteeTicket)
+routers.patch('/acceptTicket/:ticketid',TicketControllers.updatestatusRequesteeTicket)
 module.exports = routers;
