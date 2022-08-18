@@ -151,10 +151,8 @@ const updatestatusRequesteeTicket = async(req,res) => {
     try {
         const id = req.params.ticketid
         if(req.body.status === "escalate") req.body.escalated = "open";
-        console.log(id,req.body)
 
         const updateTicket = await Ticket.findByIdAndUpdate({_id: req.params.ticketid}, req.body ,{new:true})
-        console.log(updateTicket)
         if (updateTicket){
             await updateTicket.save()
             return res.status(200).json({msg:"ticket has been updated"})
