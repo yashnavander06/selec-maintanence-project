@@ -2,7 +2,7 @@ const upload = require('../Middleware/imageUpload.middleware')
 const { findUser } = require('../Middleware/checkAuth.middleware')
 const { imageModel } = require("../Models/checklist.model")
 const { User, Role } = require('../Models/users.model')
-const upload = require("../Middleware/imageUpload.middleware");
+    // const upload = require("../Middleware/imageUpload.middleware");
 const { Ticket } = require("../Models/ticket.models");
 
 
@@ -122,7 +122,7 @@ const ticketAccept = async(req, res) => {
         console.log(user)
         const userid = user._id
         const accept = await Ticket.findOneAndUpdate({
-            _id: req.params.id
+            _id: req.params.ticketid
         }, {
             $set: {
                 "accepted": "true",
