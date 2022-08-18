@@ -2,25 +2,25 @@ const upload = require('../Middleware/imageUpload.middleware')
 const { imageModel } = require('../Models/checklist.model')
 
 
-const imageUpload = async(req, res) => {
-    upload(req, res, (err) => {
-        if (err) console.log(err)
+// const imageUpload = async(req, res) => {
+//     upload(req, res, (err) => {
+//         if (err) console.log(err)
 
-        const newImage = new imageModel({
-            name: req.body.name,
-            image: {
-                data: req.file.filename,
-                contentType: ['image/png', 'image/jpg', 'image/jpeg']
-            }
-        })
-        try {
-            await newImage.save()
+//         const newImage = new imageModel({
+//             name: req.body.name,
+//             image: {
+//                 data: req.file.filename,
+//                 contentType: ['image/png', 'image/jpg', 'image/jpeg']
+//             }
+//         })
+//         try {
+//             await newImage.save()
 
-        } catch (err) {
-            res.json({ message: error });
-        }
-    })
-}
+//         } catch (err) {
+//             res.json({ message: error });
+//         }
+//     })
+// }
 
 //Workorder
 const workOrder =async (req,res)=>{
@@ -143,4 +143,4 @@ const ticketAccept = async (req,res) =>{
     }   
 }
 
-module.exports = { workOrder,ticketAccept ,ticketDisplay,imageUpload}
+module.exports = { workOrder,ticketAccept ,ticketDisplay}

@@ -136,7 +136,7 @@ const updateRequesteeTicket = async(req,res) => {
     // TODO rework on update logic
     try {
         
-        await Ticket.findOneAndUpdate({_id: req.params.id},req.body,{new:true},(err,result) => {
+        await Ticket.findOneAndUpdate({_id: req.params.ticketid},req.body,{new:true},(err,result) => {
             if(err) return res.status(400).json({msg:"an error occured, try again"})
             if(result) return res.status(200).json({msg:"ticket has been updated"})
             return res.status(404).json({msg: "Ticket not found"})
