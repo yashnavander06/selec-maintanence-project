@@ -18,7 +18,7 @@ routers.get('/ticketdisplay', checkAuth, checkRole(config.ROLE.TECHNICIAN_INTERN
 // update ticket
 routers.put('/updateTicket/:ticketid', checkAuth, checkRole(config.ROLE.TECHNICIAN_INTERNAL), TicketControllers.updateRequesteeTicket)
 
-// close ticket
+// open/close ticket
 routers.patch('/acceptTicket/:ticketid', checkAuth, checkRole(config.ROLE.TECHNICIAN_INTERNAL), TicketControllers.updatestatusRequesteeTicket)
 
 module.exports = routers;
