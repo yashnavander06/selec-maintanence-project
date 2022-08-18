@@ -15,20 +15,20 @@ const getUsers = async(req, res) => {
     try {
         let keys = req.query.user_id
         if (keys) {
-            const user = await User.findOne({ user_id: keys }).populate('role','name').populate('asset_category','asset_category').populate('skills','asset_name').exec()
+            const user = await User.findOne({ user_id: keys }).populate('role', 'name').populate('asset_category', 'asset_category').populate('skills', 'asset_name').exec()
             if (user === null) return res.status(404).json({ msg: "No user Found" })
             return res.send(user)
         }
         let role = req.query.role
         if (role) {
-            const roleid = await Role.find({name: role})
+            const roleid = await Role.find({ name: role })
             role = roleid[0]._id.toString()
-            const userrole = await User.find({"role":role}).populate('role','name').populate('asset_category','asset_category').populate('skills','asset_name').exec()
+            const userrole = await User.find({ "role": role }).populate('role', 'name').populate('asset_category', 'asset_category').populate('skills', 'asset_name').exec()
             const total = userrole.length;
             if (userrole === null) return res.status(404).json({ msg: `No user with role: ${role} was found` })
             return res.status(200).send({ users: userrole, total: total })
         }
-        const users = await User.find({}).populate('role','name').populate('asset_category','asset_category').populate('skills','asset_name').exec();
+        const users = await User.find({}).populate('role', 'name').populate('asset_category', 'asset_category').populate('skills', 'asset_name').exec();
         const total = await User.count({});
         if (users.length == 0) return res.status(404).json({ msg: "No users Found" })
 
@@ -42,49 +42,49 @@ const getUsers = async(req, res) => {
 //  add new user
 const addUser = async(req, res) => {
     try {
-        
+
         if (req.body.role) {
-            req.body.role = await Role.find({name: req.body.role})
+            req.body.role = await Role.find({ name: req.body.role })
             req.body.role = req.body.role[0]
         }
 
-        if(req.body.asset_category){
+        if (req.body.asset_category) {
             category = req.body.asset_category
-            if(category.length >= 2){
+            if (category.length >= 2) {
                 let data = []
-                for (let i in category){
-                    categories = await assetsconfig.find({asset_name: req.body.asset_category[i]})
-                    data.push(categories[0]) 
+                for (let i in category) {
+                    categories = await assetsconfig.find({ asset_name: req.body.asset_category[i] })
+                    data.push(categories[0])
                 }
                 req.body.asset_category = data
             }
-            Adata = await assetsconfig.find({asset_category: req.body.asset_category})
+            Adata = await assetsconfig.find({ asset_category: req.body.asset_category })
             req.body.asset_category = Adata[0]
         }
 
-        if(req.body.skills){
+        if (req.body.skills) {
             techskills = req.body.skills
-            if(techskills.length >= 2){
+            if (techskills.length >= 2) {
                 let data = []
-                for (let i in techskills){
-                    skills = await Asset.find({asset_name: req.body.skills[i]})
-                    data.push(skills[0]) 
+                for (let i in techskills) {
+                    skills = await Asset.find({ asset_name: req.body.skills[i] })
+                    data.push(skills[0])
                 }
                 req.body.skills = data
-            }else{
-                skills = await Asset.find({asset_name: req.body.skills})
+            } else {
+                skills = await Asset.find({ asset_name: req.body.skills })
                 req.body.skills = skills[0]
             }
-            
+
         }
 
-        if(req.body.location){
+        if (req.body.location) {
             let addlocation = await Location.find({})
         }
 
         const newUser = new User(req.body)
         const saltRounds = await bcrypt.genSalt(10);
-        newUser.password = await bcrypt.hash(newUser.password, saltRounds) 
+        newUser.password = await bcrypt.hash(newUser.password, saltRounds)
 
         const Userdata = await newUser.save();
         res.json(Userdata);
@@ -94,119 +94,122 @@ const addUser = async(req, res) => {
 }
 
 // Update user
-const updateUser = async(req, res) => { 
+const updateUser = async(req, res) => {
     try {
-        if(req.body){
+        if (req.body) {
             if (req.body.role) {
-                req.body.role = await Role.find({name: req.body.role})
+                req.body.role = await Role.find({ name: req.body.role })
                 req.body.role = req.body.role[0]
             }
 
-            if(req.body.asset_category){
+            if (req.body.asset_category) {
                 let assetCategory = req.body.asset_category
                 let category = []
-                let Adata 
-                if(assetCategory >= 2){
-                    const oldcategorydata = await User.find({_id: req.params.id})
+                let Adata
+                if (assetCategory >= 2) {
+                    const oldcategorydata = await User.find({ _id: req.params.id })
                     const oldcategorydatas = oldcategorydata[0].asset_category
 
-                    if(oldcategorydatas.length >= 2){
-                        for(let i in oldcategorydatas){
-                            const Cdata = await assetsconfig.find({_id: oldcategorydatas[i]})
+                    if (oldcategorydatas.length >= 2) {
+                        for (let i in oldcategorydatas) {
+                            const Cdata = await assetsconfig.find({ _id: oldcategorydatas[i] })
                             category.push(Cdata[0])
                         }
-                    }else{
-                        const Cdata = await assetsconfig.find({_id: oldcategorydatas})
+                    } else {
+                        const Cdata = await assetsconfig.find({ _id: oldcategorydatas })
                         category.push(Cdata[0])
                     }
 
                     // checks the largest length amongest old and new data array
-                    let {length, obj} = getLength(category, assetCategory,"assetCategory")
+                    let { length, obj } = getLength(category, assetCategory, "assetCategory")
 
                     // checks for redundant value and returns nonsimilardata values
-                    let {nonsimilardata} = checkReduncancy(length,obj,assetCategory)
+                    let { nonsimilardata } = checkReduncancy(length, obj, assetCategory)
 
-                    if(nonsimilardata !== undefined){
+                    if (nonsimilardata !== undefined) {
                         let data = []
-                        for (let i in nonsimilardata){
-                            config = await assetsconfig.find({asset_name: nonsimilardata[i]})
-                            data.push(config[0]) 
+                        for (let i in nonsimilardata) {
+                            config = await assetsconfig.find({ asset_name: nonsimilardata[i] })
+                            data.push(config[0])
                         }
                         req.body.asset_category = data
-                    }else{
+                    } else {
                         req.body.asset_category = ""
                     }
                 }
-                Adata = await assetsconfig.find({asset_category: req.body.asset_category})
+                Adata = await assetsconfig.find({ asset_category: req.body.asset_category })
                 req.body.asset_category = Adata[0]
             }
 
-            if(req.body.skills){
+            if (req.body.skills) {
                 let techskills = req.body.skills
                 let skills = []
-                if(techskills.length >= 2){
-                    const oldUserSkill = await User.find({_id: req.params.id})
+                if (techskills.length >= 2) {
+                    const oldUserSkill = await User.find({ _id: req.params.id })
                     const oldUserSkills = oldUserSkill[0].skills
 
-                    if(oldUserSkills.length >=2){
-                        for (let i in  oldUserSkills){
-                            const Sdata = await Asset.find({_id: oldUserSkills[i]})
+                    if (oldUserSkills.length >= 2) {
+                        for (let i in oldUserSkills) {
+                            const Sdata = await Asset.find({ _id: oldUserSkills[i] })
                             skills.push(Sdata[0])
-                        } 
-                    }else{
-                        const Sdata = await Asset.find({_id: oldUserSkills})
+                        }
+                    } else {
+                        const Sdata = await Asset.find({ _id: oldUserSkills })
                         skills.push(Sdata[0])
                     }
 
                     // checks the largest length amongest old and new data array
-                    let {length, obj} = getLength(skills, techskills)
+                    let { length, obj } = getLength(skills, techskills)
 
                     // checks for redundant value and returns nonsimilardata values
-                    let nonsimilardata = checkReduncancy(length,obj,techskills)
+                    let nonsimilardata = checkReduncancy(length, obj, techskills)
 
-                    if (nonsimilardata !== undefined){
+                    if (nonsimilardata !== undefined) {
                         let data = []
-                        for (let i in nonsimilardata){
-                            skills = await Asset.find({asset_name: nonsimilardata[i]})
-                            data.push(skills[0]) 
+                        for (let i in nonsimilardata) {
+                            skills = await Asset.find({ asset_name: nonsimilardata[i] })
+                            data.push(skills[0])
                         }
                         req.body.skills = data
-                    }else{
+                            // console.log(data)
+                    } else {
                         req.body.skills = ""
                     }
-                    
-                }else{
-                    skills = await Asset.find({asset_name: req.body.skills})
+
+                } else {
+                    skills = await Asset.find({ asset_name: req.body.skills })
                     req.body.skills = skills[0]
+                    console.log(req.body.skills)
+
                 }
-                
+
             }
 
-            const updateuser = await User.findByIdAndUpdate({ _id: req.params.id }, 
-                { $push: {
-                    "username": req.body.username,
-                    "password": req.body.password,
-                    "first_name": req.body.first_name,
-                    "middle_name": req.body.middle_name,
-                    "last_name": req.body.last_name,
-                    "mobile_phone": req.body.mobile_phone,
-                    "email_id": req.body.email_id,
-                    "company_name": req.body.company_name,
-                    "role": req.body.role,
-                    "note": req.body.note,
-                    "interfaces": req.body.interfaces,
-                    "asset_category": req.body.asset_category,
-                    "skills": req.body.skills 
-                }},
-                { new: true })
-            console.log(updateuser)
+            const updateuser = await User.findByIdAndUpdate({ _id: req.params.id }, {
+                    $push: {
+                        "username": req.body.username,
+                        "password": req.body.password,
+                        "first_name": req.body.first_name,
+                        "middle_name": req.body.middle_name,
+                        "last_name": req.body.last_name,
+                        "mobile_phone": req.body.mobile_phone,
+                        "email_id": req.body.email_id,
+                        "company_name": req.body.company_name,
+                        "role": req.body.role,
+                        "note": req.body.note,
+                        "interfaces": req.body.interfaces,
+                        "asset_category": req.body.asset_category,
+                        "skills": req.body.skills
+                    }
+                }, { new: true })
+                // console.log(updateuser)
             const up = await updateuser.save();
             return res.status(200).json(up);
-    
-        }
-        return new Error({error: "update fields cannot be empty"})
 
-        
+        }
+        return new Error({ error: "update fields cannot be empty" })
+
+
     } catch (error) {
         return new Error(error.message)
 
@@ -329,10 +332,10 @@ const addAssetCategory = async(req, res) => {
     try {
         let udata = []
 
-        if(req.body.asset_list){
-            for (let i=0; i<req.body.asset_list.length;i++){
+        if (req.body.asset_list) {
+            for (let i = 0; i < req.body.asset_list.length; i++) {
                 const updateasset = await Asset.find({ asset_name: req.body.asset_list[i] })
-                udata.push(updateasset[0]) 
+                udata.push(updateasset[0])
             }
             req.body.asset_list = udata
         }
@@ -369,24 +372,24 @@ const updateAssetCategory = async(req, res) => {
         if (req.body) {
             let udata = []
             let newdata = req.body.asset_list
-            // Old asset Category data
+                // Old asset Category data
 
-            const oldAssetCategoryData = await assetsconfig.find({_id: req.params.id})
+            const oldAssetCategoryData = await assetsconfig.find({ _id: req.params.id })
             const oldAssetData = oldAssetCategoryData[0].asset_list
 
             // checking similar asset data in asset_list to avoid redundency 
 
             // checks the largest length amongest old and new data array
-            let {length, obj} = getLength(oldAssetData, newdata,"assetCategory")
+            let { length, obj } = getLength(oldAssetData, newdata, "assetCategory")
 
             // checks for redundant value and returns nonsimilardata values
-            let {nonsimilardata} = checkReduncancy(length,obj,newdata)
+            let { nonsimilardata } = checkReduncancy(length, obj, newdata)
 
-            if(nonsimilardata !== undefined){
+            if (nonsimilardata !== undefined) {
                 if (nonsimilardata.length > 1) {
                     for (let i in nonsimilardata) {
                         const updateasset = await Asset.find({ asset_name: nonsimilardata[i] })
-                        udata.push(updateasset[0]) 
+                        udata.push(updateasset[0])
                     }
                     req.body.asset_list = udata
                 } else {
@@ -394,20 +397,20 @@ const updateAssetCategory = async(req, res) => {
                     req.body.asset_list = updateasset[0]
                 }
 
-                const updateassetcategory = await assetsconfig.findOneAndUpdate({ _id: req.params.id }, 
-                    { $push: {
+                const updateassetcategory = await assetsconfig.findOneAndUpdate({ _id: req.params.id }, {
+                    $push: {
                         "asset_category": req.body.asset_category,
                         "asset_list": req.body.asset_list
-                    } }, 
-                    { new: true })
+                    }
+                }, { new: true })
                 console.log(updateassetcategory)
                 const uac = await updateassetcategory.save();
                 return res.status(200).json(uac)
             }
-            return res.status(422).json({msg:"asset list already exits"})
-        } 
-        return res.status(400).json({msg:"request body cannot be empty"})
-        
+            return res.status(422).json({ msg: "asset list already exits" })
+        }
+        return res.status(400).json({ msg: "request body cannot be empty" })
+
     } catch (error) {
         return new Error(error)
     }
@@ -492,12 +495,12 @@ const updateMachine = async(req, res) => {
 // get schedular
 const getSchedular = async(req, res) => {
     try {
-        if(req.query.asset_category){
+        if (req.query.asset_category) {
             const schedular = await Schedular.find({ asset_category: req.query.asset_category });
             const total = schedular.length;
-    
+
             if (total == 0) return res.status(404).json({ msg: "no schedules found" })
-    
+
             res.status(200).json({ Schedules: schedular, total: total })
         }
 
@@ -513,22 +516,22 @@ const getSchedular = async(req, res) => {
 }
 
 // get a schedule
-const getOneSchedule = async(req,res)=>{
+const getOneSchedule = async(req, res) => {
     try {
-        if(req.params.id){
-            const schedular = await Schedular.find({_id: req.params.id});
+        if (req.params.id) {
+            const schedular = await Schedular.find({ _id: req.params.id });
             const total = schedular.length;
-    
+
             if (total == 0) return res.status(404).json({ msg: "no schedule found" })
-    
+
             res.status(200).json({ Schedule: schedular })
         }
-        return res.status(400).json({msg: "id cannot be empty"})
+        return res.status(400).json({ msg: "id cannot be empty" })
     } catch (error) {
         return new Error(error)
     }
 }
- 
+
 // add schedular
 const addSchedular = async(req, res) => {
     try {
@@ -642,23 +645,23 @@ const deleteLocation = async(req, res) => {
 //////////////////////////////////////////////////// Checklist Section ///////////////////////////////////////////////
 
 // get checklists
-const getChecklist = async(req,res) => {
+const getChecklist = async(req, res) => {
     try {
 
-        if(req.query.machine_name){
-            const getchecklist = await checklist.find({machine_name: req.query.machine_name}).populate("machine_name","model_name").exec()
+        if (req.query.machine_name) {
+            const getchecklist = await checklist.find({ machine_name: req.query.machine_name }).populate("machine_name", "model_name").exec()
             const total = getchecklist.length
 
-            if(total == 0) return res.status(404).json({msg: "no checklist found"})
+            if (total == 0) return res.status(404).json({ msg: "no checklist found" })
 
-            return res.status(200).json({checklist: getchecklist, total: total})
+            return res.status(200).json({ checklist: getchecklist, total: total })
         }
-        const getchecklist = await checklist.find({}).populate('machine_name','model_name').populate('task_list','task').exec()
+        const getchecklist = await checklist.find({}).populate('machine_name', 'model_name').populate('task_list', 'task').exec()
         const total = getchecklist.length
 
-        if(total == 0) return res.status(404).json({msg: "no checklist found"})
+        if (total == 0) return res.status(404).json({ msg: "no checklist found" })
 
-        return res.status(200).json({checklist: getchecklist, total: total})
+        return res.status(200).json({ checklist: getchecklist, total: total })
 
     } catch (error) {
         return new Error(error)
@@ -666,63 +669,63 @@ const getChecklist = async(req,res) => {
 }
 
 // get one checklist
-const getOneChecklist = async(req,res) => {
+const getOneChecklist = async(req, res) => {
     try {
-        if(req.params.id){
-            const getonechecklist = await checklist.find({_id: req.params.id})
+        if (req.params.id) {
+            const getonechecklist = await checklist.find({ _id: req.params.id })
             const total = getonechecklist.length
-            if(total == 0) return res.status(404).json({msg: "no checklist found"})
-    
-            return res.status(200).json({checklist: getonechecklist}) 
+            if (total == 0) return res.status(404).json({ msg: "no checklist found" })
+
+            return res.status(200).json({ checklist: getonechecklist })
         }
-        return res.status(400).json({msg:"id cannot be empty"})
+        return res.status(400).json({ msg: "id cannot be empty" })
     } catch (error) {
         return new Error(error)
     }
 }
 
 // add checklist
-const addChecklist = async(req,res) => {
+const addChecklist = async(req, res) => {
     // TODO test this route
     try {
 
         //  find machine exists? yes then proceed further else return false
-        if(req.body.machine_name){
+        if (req.body.machine_name) {
 
             // find machine from machine table and replace it with req.body.machine
-            const machine = await machinedata.find({model_name: req.body.machine_name})
-            if (machine.length == 0) return res.status(404).json({msg: "machine not found"})           
+            const machine = await machinedata.find({ model_name: req.body.machine_name })
+            if (machine.length == 0) return res.status(404).json({ msg: "machine not found" })
             req.body.machine_name = machine[0]
 
             // if tasklist exists in req body
-            if(req.body.task_list){
+            if (req.body.task_list) {
                 const newchecklist = req.body.task_list
                 const oldtasklist = await tasklist.find({})
-                
+
                 // if no tasklist exists then. else ....
                 let tasks = []
-                if (oldtasklist.length == 0){   
-                    for (let i in newchecklist){
-                        const newtask = new tasklist({task: newchecklist[i]})
+                if (oldtasklist.length == 0) {
+                    for (let i in newchecklist) {
+                        const newtask = new tasklist({ task: newchecklist[i] })
                         await newtask.save()
-                        
+
                         // store newly added tasklist's id to a list
                         tasks.push(newtask)
                     }
-                    
+
                     req.body.task_list = tasks
-    
-                }else{
+
+                } else {
                     // checks the largest length amongest old and new data array
-                    let {length,obj} =  getLength(oldtasklist,newchecklist,"checkList")
+                    let { length, obj } = getLength(oldtasklist, newchecklist, "checkList")
 
                     // checks for redundant value and returns nonsimilardata and redendant values
-                    let {nonsimilardata,similardata} = checkReduncancy(length,obj,newchecklist)
+                    let { nonsimilardata, similardata } = checkReduncancy(length, obj, newchecklist)
 
-                    if (nonsimilardata.length != 0 && similardata.length != 0){
+                    if (nonsimilardata.length != 0 && similardata.length != 0) {
                         // create the new tasklist if tasklist doesnot exists 
-                        for(let i in nonsimilardata){
-                            const newtask = new tasklist({task: nonsimilardata[i]})
+                        for (let i in nonsimilardata) {
+                            const newtask = new tasklist({ task: nonsimilardata[i] })
                             await newtask.save()
 
                             // store newly added tasklist's id to a list
@@ -730,45 +733,45 @@ const addChecklist = async(req,res) => {
                         }
 
                         // find the existing tasklist and append the tasklist's id to a list
-                        for (let i in similardata){
-                            const oldtask = await tasklist.find({task: similardata[i]})
+                        for (let i in similardata) {
+                            const oldtask = await tasklist.find({ task: similardata[i] })
                             tasks.push(oldtask[0])
                         }
 
-                    // find the existing tasklist and append the tasklist's id to a list    
-                    }else if(similardata){
-                        for (let i in similardata){
-                            const oldtask = await tasklist.find({task: similardata[i]})
+                        // find the existing tasklist and append the tasklist's id to a list    
+                    } else if (similardata) {
+                        for (let i in similardata) {
+                            const oldtask = await tasklist.find({ task: similardata[i] })
                             tasks.push(oldtask[0])
                         }
                     }
 
                     req.body.task_list = tasks
                 }
-                
+
             }
             console.log(req.body)
-            // finally create the checklist and save
+                // finally create the checklist and save
             const newchecklist = new checklist(req.body)
-            // add checklist id to new tasklist after saving the checklist data 
+                // add checklist id to new tasklist after saving the checklist data 
             await newchecklist.save()
 
             // post save opration
             // update checklist_id attribute of tasklist after saving new checklist
             let checklistid = newchecklist._id
 
-            for (let i in tasks){
-                const updatetasklist = await tasklist.findByIdAndUpdate({_id: tasks[i]._id},{$push: {checklist_id: checklistid}})
+            for (let i in tasks) {
+                const updatetasklist = await tasklist.findByIdAndUpdate({ _id: tasks[i]._id }, { $push: { checklist_id: checklistid } })
                 updatetasklist.save()
             }
 
-            return res.status(201).json({msg: "checklist added successfully"})
+            return res.status(201).json({ msg: "checklist added successfully" })
 
-        }else{
-            return res.status(401).json({msg: "machine name cannot be empty"})
+        } else {
+            return res.status(401).json({ msg: "machine name cannot be empty" })
         }
     } catch (error) {
         return new Error(error)
     }
 }
-module.exports = { getUsers, addUser, updateUser, deleteUser, addRole, getRoles, deleteRole, getAsset, addAsset, deleteAsset, addAssetCategory, getAssetCategory, deleteAssetCategory, updateAssetCategory, addMachine, getMachine, deleteMachine, updateMachine, getSchedular, getOneSchedule, addSchedular, updateSchedular, deleteSchedular, addLocation, getLocation, updateLocation, deleteLocation, getChecklist, getOneChecklist, addChecklist}
+module.exports = { getUsers, addUser, updateUser, deleteUser, addRole, getRoles, deleteRole, getAsset, addAsset, deleteAsset, addAssetCategory, getAssetCategory, deleteAssetCategory, updateAssetCategory, addMachine, getMachine, deleteMachine, updateMachine, getSchedular, getOneSchedule, addSchedular, updateSchedular, deleteSchedular, addLocation, getLocation, updateLocation, deleteLocation, getChecklist, getOneChecklist, addChecklist }
