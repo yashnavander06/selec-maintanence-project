@@ -13,9 +13,9 @@ const assetData = new Schema({
         unique: true,
         // require: true
     },
-    asset_component_list: {
-        type: [String]
-    } // e.g area 1, area 2 or area 3
+    asset_component_list: [{
+        type: String
+    }] // e.g area 1, area 2 or area 3
 }, { timestamps: true })
 
 const assetsConfig = new Schema({
