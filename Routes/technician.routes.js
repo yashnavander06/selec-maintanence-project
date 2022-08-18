@@ -4,7 +4,9 @@ const technicianControllers = require('../Controllers/technician.controllers')
 const TicketControllers = require('../Controllers/ticket.controllers')
 const { checkAuth, checkRole } = require('../Middleware/checkAuth.middleware')
 const config = require('../config.json')
-// routers.post('/upload', technicianControllers.imageUpload);
+const { upload } = require('../Middleware/imageUpload.middleware')
+
+routers.post('/upload', upload.single('image') ,technicianControllers.imageUpload);
 
 routers.get('/workorder',checkAuth, checkRole(config.ROLE.TECHNICIAN_INTERNAL),technicianControllers.workOrder);
 routers.get('/ticketdisplay',checkAuth, checkRole(config.ROLE.TECHNICIAN_INTERNAL),technicianControllers.ticketDisplay);

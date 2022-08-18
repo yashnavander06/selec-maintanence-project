@@ -1,26 +1,29 @@
+const { findUser } = require('../Middleware/checkAuth.middleware')
 const upload = require('../Middleware/imageUpload.middleware')
 const { imageModel } = require('../Models/checklist.model')
+const { Ticket } = require('../Models/ticket.models')
+const { Role } = require('../Models/users.model')
 
 
-// const imageUpload = async(req, res) => {
-//     upload(req, res, (err) => {
-//         if (err) console.log(err)
+const imageUpload = async(req, res) => {    
+    try {
+        const image = req.file.buffer
+        const imagename = req.file.originalname
 
-//         const newImage = new imageModel({
-//             name: req.body.name,
-//             image: {
-//                 data: req.file.filename,
-//                 contentType: ['image/png', 'image/jpg', 'image/jpeg']
-//             }
-//         })
-//         try {
-//             await newImage.save()
+        const newImage = new imageModel({
+            name: imagename,
+            image: image
+        })
 
-//         } catch (err) {
-//             res.json({ message: error });
-//         }
-//     })
-// }
+        await newImage.save()
+
+        res.status(200).json({msg: "image uploaded successfully"})
+
+    } catch (err) {
+        res.json({ message: error });
+    }
+    
+}
 
 //Workorder
 const workOrder =async (req,res)=>{
@@ -57,7 +60,7 @@ const workOrder =async (req,res)=>{
             
     }
     catch(error){
-return res.status(500).json({msg : error})
+return res.status(500).json({error : error})
     }
 }
 
@@ -112,7 +115,7 @@ const ticketDisplay = async (req,res)=>{
         })
     }
     catch(error){
-        return res.status(500).json({msg : error})
+        return res.status(500).json({error : error})
     }
 }
 //ticket accept
@@ -139,8 +142,8 @@ const ticketAccept = async (req,res) =>{
             }
 
     catch(error){
-        return res.status(500).json({msg : error})
+        return res.status(500).json({error : error})
     }   
 }
 
-module.exports = { workOrder,ticketAccept ,ticketDisplay}
+module.exports = { workOrder,ticketAccept ,ticketDisplay, imageUpload}
