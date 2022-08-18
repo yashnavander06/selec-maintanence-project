@@ -1,6 +1,7 @@
 const express = require('express')
 const routers = express.Router();
 const technicianControllers = require('../Controllers/technician.controllers')
+const TicketControllers = require('../Controllers/ticket.controllers')
 const { checkAuth, checkRole } = require('../Middleware/checkAuth.middleware')
 const config = require('../config.json')
 // routers.post('/upload', technicianControllers.imageUpload);
