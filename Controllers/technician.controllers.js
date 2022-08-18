@@ -62,7 +62,6 @@ const workOrder = async(req, res) => {
 }
 
 //ticket display
-
 const ticketDisplay = async(req, res) => {
         try {
             const username = req.valid.username // data retrived from token
