@@ -1,6 +1,6 @@
 {
     "Jwt": {
-        "access_expires": 480,
+        "access_expires": 48000,
         "refresh_expires": 1200,
         "JWT_SECRET_KEY": "efed624b326d36889b3d70659aaa4219",
         "TOKEN_HEADER_KEY": "e66d927418de0bbb9a363392783197ad"
@@ -14,7 +14,7 @@
         "DEPARTMENT_HEAD": "department-head",
         "REQUESTEE": "requestee"
     },
-    "INTERFACE":{
+    "INTERFACE": {
         "APP": "App",
         "EMAIL": "Email",
         "WEBAPP": "Webapp"
