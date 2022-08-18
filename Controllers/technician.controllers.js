@@ -122,14 +122,14 @@ const ticketAccept = async(req, res) => {
         console.log(user)
         const userid = user._id
         const accept = await Ticket.findOneAndUpdate({
-            _id: req.params.id
+            _id: req.params.ticketid
         }, {
             $set: {
                 "accepted": "true",
                 "accepted_by": userid
             }
         }, { new: true })
-
+        await accept.save()
         return res.status(200).send("accepted")
     } catch (error) {
         return res.status(500).json({ error: error })
