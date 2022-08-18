@@ -10,7 +10,7 @@ const assetData = new Schema({
     location: String,
     asset_category: {
         type: String,
-        unique: true,
+        // unique: true,
         // require: true
     },
     asset_component_list: [{
