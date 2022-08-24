@@ -1,15 +1,15 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
-const location = new Schema({
-    unit_or_building: {
-        type: String,
-        require: true
-    },
+const additionalDetails = new Schema({
     floor: {
         type: String,
-        require: true
+        require: true,
     },
+    room:[{
+        type: String,
+        require: true,
+    }],
     group_or_BU: {
         type: String,
         require: true
@@ -18,6 +18,15 @@ const location = new Schema({
         type: String,
         require: true
     },
+},{ _id : false })
+
+
+const location = new Schema({
+    unit_or_building: {
+        type: String,
+        require: true
+    },
+    additional_details:[ additionalDetails ],
     locality: {
         type: String,
         require: true

@@ -580,7 +580,6 @@ const getLocation = async(req, res) => {
         if (req.query) {
             let status = req.query.status
             let city = req.query.city
-            console.log(status, city)
 
             if (status && city) {
                 const getlocationbystatusandcity = await Location.find({ status: { $regex: status }, city: { $regex: city } })
@@ -612,12 +611,11 @@ const getLocation = async(req, res) => {
 const updateLocation = async(req, res) => {
     try {
         if (req.params.id) {
-            const updatelocation = await Location.findByIdAndUpdate({ _id: req.params.id }, { $set: req.body }, { new: true })
-            console.log(updatelocation)
+            const updatelocation = await Location.findByIdAndUpdate({ _id: req.params.id }, { $push: req.body }, { new: true })
             const updatedata = await updatelocation.save()
-            res.status(200).json({ data: updatedata })
+            res.status(200).json({ msg: "location updated successfully" })
         }
-        res.json({ message: "userid is required" })
+        res.status(400).json({ message: "location id is required" })
 
 
     } catch (error) {

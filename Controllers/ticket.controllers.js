@@ -155,7 +155,6 @@ const updatestatusRequesteeTicket = async(req,res) => {
         const updateTicket = await Ticket.findByIdAndUpdate({_id: req.params.ticketid}, req.body ,{new:true})
         if (updateTicket){
             await updateTicket.save()
-            return res.status(200).json({msg:"ticket has been updated"})
         }else{
             return res.status(400).json({msg:"an error occured, try again"})
         }

@@ -3,6 +3,8 @@ const upload = require('../Middleware/imageUpload.middleware')
 const { imageModel } = require('../Models/checklist.model')
 const { Ticket } = require('../Models/ticket.models')
 const { Role } = require('../Models/users.model')
+var fs = require('fs');
+var path = require('path');
 
 
 const imageUpload = async(req, res) => {
