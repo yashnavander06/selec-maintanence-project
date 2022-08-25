@@ -1,7 +1,7 @@
 const express = require('express')
 const routers = express.Router();
 const adminControllers = require('../Controllers/admin.controllers')
-const config = require('../config.json')
+const config = require('../config/config.json')
 const { checkAuth, checkRole } = require('../Middleware/checkAuth.middleware')
 const TicketControllers = require('../Controllers/ticket.controllers')
 

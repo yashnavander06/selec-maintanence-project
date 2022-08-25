@@ -3,9 +3,7 @@ const Schema = mongoose.Schema
 
 const images = new Schema({
     name: String,
-    image: {
-        type: Buffer,
-    }
+    image: String
 }, { timestamps: true })
 
 const taskList = new Schema({

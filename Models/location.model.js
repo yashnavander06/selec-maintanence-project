@@ -24,9 +24,10 @@ const additionalDetails = new Schema({
 const location = new Schema({
     unit_or_building: {
         type: String,
-        require: true
+        require: true,
+        unique: true
     },
-    additional_details:[ additionalDetails ],
+    subdivision:[ additionalDetails ],
     locality: {
         type: String,
         require: true

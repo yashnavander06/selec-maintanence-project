@@ -3,11 +3,12 @@ const routers = express.Router();
 const technicianControllers = require('../Controllers/technician.controllers')
 const TicketControllers = require('../Controllers/ticket.controllers')
 const { checkAuth, checkRole } = require('../Middleware/checkAuth.middleware')
-const config = require('../config.json')
+const config = require('../Config/config.json')
 const { upload } = require('../Middleware/imageUpload.middleware')
+const {uploadImage} = require('../Services/firebase')
 
 // Upload Image
-routers.post('/upload', upload.single('image'), technicianControllers.imageUpload);
+routers.post('/upload', upload.single('image'), uploadImage, technicianControllers.imageUpload);
 
 // get accepted tickets
 routers.get('/workorder', checkAuth, checkRole(config.ROLE.TECHNICIAN_INTERNAL), technicianControllers.workOrder);

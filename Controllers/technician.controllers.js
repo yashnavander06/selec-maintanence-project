@@ -9,8 +9,9 @@ var path = require('path');
 
 const imageUpload = async(req, res) => {
     try {
-        const image = req.file.buffer
+        const image = req.file.firebaseUri
         const imagename = req.file.originalname
+
 
         const newImage = new imageModel({
             name: imagename,
@@ -22,7 +23,7 @@ const imageUpload = async(req, res) => {
         res.status(200).json({ msg: "image uploaded successfully" })
 
     } catch (err) {
-        res.json({ message: error });
+        res.json({ message: err });
     }
 
 }

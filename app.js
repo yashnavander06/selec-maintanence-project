@@ -1,9 +1,9 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
-const connection = require('./db.connect')
+const connection = require('./Config/db.connect')
 const cors = require('cors')
-require('dotenv').config();
+require('dotenv').config({path: './Config/.env'});
 
 // initialize express
 const app = express();
@@ -24,7 +24,7 @@ const adminRoutes = require('./Routes/admin.routes') // Admin routes
 app.use('/admin', adminRoutes);
 const requesteeRoutes = require('./Routes/requestee.routes') // Requestee routes
 app.use('/requestee', requesteeRoutes)
-const techinternalroutes = require('./Routes/technician.routes');
+const techinternalroutes = require('./Routes/technician.routes'); // Technician routes
 app.use('/technician',techinternalroutes)
 const DummyRoute = require('./Routes/test.routes') // Dummy routes
 app.use('/test', DummyRoute)
