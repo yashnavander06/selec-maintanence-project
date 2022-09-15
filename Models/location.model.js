@@ -1,23 +1,24 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
+const roomschema = new Schema({
+    room:{
+        type: String,
+        require: true
+    },
+    assets: [{
+        type: Schema.Types.ObjectId,
+        ref: 'machineData',
+        require: true
+    }],
+},{ _id : false })
+
 const additionalDetails = new Schema({
     floor: {
         type: String,
-        require: true,
-    },
-    room:[{
-        type: String,
-        require: true,
-    }],
-    group_or_BU: {
-        type: String,
         require: true
     },
-    line_name: {
-        type: String,
-        require: true
-    },
+    rooms: [roomschema],
 },{ _id : false })
 
 

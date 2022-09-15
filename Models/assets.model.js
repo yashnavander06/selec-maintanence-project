@@ -15,7 +15,11 @@ const assetData = new Schema({
     },
     asset_component_list: [{
         type: String
-    }] // e.g area 1, area 2 or area 3
+    }], // e.g area 1, area 2 or area 3
+    asset_location:{
+        type: Schema.Types.ObjectId,
+        ref: "location"
+    }
 }, { timestamps: true })
 
 const assetsConfig = new Schema({

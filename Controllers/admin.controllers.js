@@ -13,6 +13,9 @@ const bcrypt = require('bcrypt');
 // get all users
 const getUsers = async(req, res) => {
     try {
+        // pagination parameters
+        const { page = 1,limit = 9 } = req.query
+
         let keys = req.query.user_id
         if (keys) {
             const user = await User.findOne({ user_id: keys }).populate('role', 'name').populate('asset_category', 'asset_category').populate('skills', 'asset_name').exec()
@@ -23,12 +26,12 @@ const getUsers = async(req, res) => {
         if (role) {
             const roleid = await Role.find({ name: role })
             role = roleid[0]._id.toString()
-            const userrole = await User.find({ "role": role }).populate('role', 'name').populate('asset_category', 'asset_category').populate('skills', 'asset_name').exec()
+            const userrole = await User.find({ "role": role }).populate('role', 'name').populate('asset_category', 'asset_category').populate('skills', 'asset_name').limit(limit*1).skip((page - 1)*limit).exec()
             const total = userrole.length;
             if (userrole === null) return res.status(404).json({ msg: `No user with role: ${role} was found` })
             return res.status(200).send({ users: userrole, total: total })
         }
-        const users = await User.find({}).populate('role', 'name').populate('asset_category', 'asset_category').populate('skills', 'asset_name').exec();
+        const users = await User.find({}).populate('role', 'name').populate('asset_category', 'asset_category').populate('skills', 'asset_name').limit(limit*1).skip((page - 1)*limit).exec();
         const total = await User.count({});
         if (users.length == 0) return res.status(404).json({ msg: "No users Found" })
 
@@ -285,8 +288,10 @@ const deleteRole = async(req, res) => {
 // get one/all asset/s
 const getAsset = async(req, res) => {
     try {
+        // pagination parameters
+        const { page = 1,limit = 9 } = req.query
 
-        const getassets = await Asset.find({})
+        const getassets = await Asset.find({}).limit(limit*1).skip((page - 1)*limit).exec()
         if (getassets.length == 0) return res.status(404).json({ msg: "No assets Found" })
 
         return res.json(getassets)
@@ -299,6 +304,9 @@ const getAsset = async(req, res) => {
 // add asset
 const addAsset = async(req, res) => {
     try {
+
+        const assetlocation = Location.find()
+
         const newAasset = new Asset(req.body)
         const assetData = await newAasset.save();
         res.status(201).json(assetData);
@@ -351,13 +359,16 @@ const addAssetCategory = async(req, res) => {
 // get asset category
 const getAssetCategory = async(req, res) => {
     try {
+        // pagination parameters
+        const { page = 1,limit = 9 } = req.query
+
         const keys = req.query.asset_id
         if (keys) {
             const assetdata = await assetsconfig.findOne({ asset_id: keys })
             if (assetdata === null) return res.status(404).json({ msg: "No category Found" })
             return res.send(assetdata)
         }
-        const getassetcategory = await assetsconfig.find({}).populate('asset_list')
+        const getassetcategory = await assetsconfig.find({}).populate('asset_list').limit(limit*1).skip((page - 1)*limit).exec()
         if (getassetcategory.length == 0) return res.status(404).json({ msg: "assetcategory not found" })
 
         res.status(200).json(getassetcategory)
@@ -449,7 +460,10 @@ const addMachine = async(req, res) => {
 // get machine
 const getMachine = async(req, res) => {
     try {
-        const mdata = await machinedata.find({})
+        // pagination parameters
+        const { page = 1,limit = 9 } = req.query
+
+        const mdata = await machinedata.find({}).limit(limit*1).skip((page - 1)*limit).exec()
         const totalcount = await machinedata.count({})
         if (mdata.length === 0) return res.status(404).json({ message: "No machines found" })
 
@@ -495,8 +509,11 @@ const updateMachine = async(req, res) => {
 // get schedular
 const getSchedular = async(req, res) => {
     try {
+        // pagination parameters
+        const { page = 1,limit = 9 } = req.query
+
         if (req.query.asset_category) {
-            const schedular = await Schedular.find({ asset_category: req.query.asset_category });
+            const schedular = await Schedular.find({ asset_category: req.query.asset_category }).limit(limit*1).skip((page - 1)*limit).exec();
             const total = schedular.length;
 
             if (total == 0) return res.status(404).json({ msg: "no schedules found" })
@@ -504,7 +521,7 @@ const getSchedular = async(req, res) => {
             res.status(200).json({ Schedules: schedular, total: total })
         }
 
-        const schedular = await Schedular.find({});
+        const schedular = await Schedular.find({}).limit(limit*1).skip((page - 1)*limit).exec();
         const total = schedular.length;
 
         if (total == 0) return res.status(404).json({ msg: "no schedules found" })
@@ -566,6 +583,53 @@ const deleteSchedular = async(req, res) => {
 // add location
 const addLocation = async(req, res) => {
     try {
+
+        if(req.body.subdivision){
+            let subdivisions = req.body.subdivision
+            if(subdivisions.length >= 2){
+                for(let i in subdivisions){
+                    let rooms = subdivisions[i].rooms   
+                    for (let j in rooms){
+                        let assets = rooms[j].assets
+                        /**
+                         *  Here we are passing list of assets to a map function to get the respective machine data
+                            but to get machine data from database we need to apply async await to map function
+                            and to avoid incomplete data or promise from map funtion we have used Promise.all() to get 
+                            all the promised data first and then append it to mapdata variable 
+                         */
+                        if(typeof assets !== 'undefined'){
+                            let mapdata = await Promise.all(assets.map(async (asset)=>{
+                                let data = await machinedata.find({model_name:asset})
+                                return data[0]
+                            }))
+                            // replacing the original data with the mapped data
+                            subdivisions[i].rooms[j].assets = mapdata
+                        }
+                    }
+
+                }
+            }else{
+                let rooms = subdivisions[0].rooms   
+                for (let i in rooms){
+                    let assets = rooms[i].assets
+                    /**
+                     *  Here we are passing list of assets to a map function to get the respective machine data
+                        but to get machine data from database we need to apply async await to map function
+                        and to avoid incomplete data or promise from map funtion we have used Promise.all() to get 
+                        all the promised data first and then append it to mapdata variable 
+                        */
+                    if(typeof assets !== 'undefined'){
+                        let mapdata = await Promise.all(assets.map(async (asset)=>{
+                            let data = await machinedata.find({model_name:asset})
+                            return data[0]
+                        }))
+                        // replacing the original data with the mapped data
+                        subdivisions[0].rooms[i].assets = mapdata
+                    }
+                }
+            }          
+        }
+
         const newLocation = new Location(req.body)
         const locationdata = await newLocation.save()
         res.status(201).json({ "new Location": locationdata })
@@ -577,28 +641,31 @@ const addLocation = async(req, res) => {
 // get location
 const getLocation = async(req, res) => {
     try {
+        // pagination parameters
+        const { page = 1,limit = 9 } = req.query
+
         if (req.query) {
             let status = req.query.status
             let city = req.query.city
 
             if (status && city) {
-                const getlocationbystatusandcity = await Location.find({ status: { $regex: status }, city: { $regex: city } })
+                const getlocationbystatusandcity = await Location.find({ status: { $regex: status }, city: { $regex: city } }).populate('subdivision.rooms.assets','model_name').limit(limit*1).skip((page - 1)*limit).exec()
                 const gettotalcount = getlocationbystatusandcity.length
                 return res.status(200).json({ locations: getlocationbystatusandcity, total: gettotalcount }).end()
             }
             if (status) {
-                const getlocationbystatus = await Location.find({ status: { $regex: status } })
+                const getlocationbystatus = await Location.find({ status: { $regex: status } }).populate('subdivision.rooms.assets','model_name').limit(limit*1).skip((page - 1)*limit).exec()
                 const totalstatuscount = getlocationbystatus.length
                 return res.status(200).json({ status: getlocationbystatus, total: totalstatuscount }).end()
             }
             if (city) {
-                const getlocationbycity = await Location.find({ city: { $regex: city } })
+                const getlocationbycity = await Location.find({ city: { $regex: city } }).populate('subdivision.rooms.assets','model_name').limit(limit*1).skip((page - 1)*limit).exec()
                 const totalcitycount = getlocationbycity.length
                 return res.status(200).json({ cities: getlocationbycity, total: totalcitycount }).end()
             }
         }
 
-        const getlocations = await Location.find({})
+        const getlocations = await Location.find({}).populate('subdivision.rooms.assets','model_name').limit(limit*1).skip((page - 1)*limit).exec()
         const totalcount = await Location.count({})
         if (totalcount === 0) return res.status(404).json({ message: "no locations found" })
         res.status(200).json({ locations: getlocations, total: totalcount })
@@ -611,6 +678,55 @@ const getLocation = async(req, res) => {
 const updateLocation = async(req, res) => {
     try {
         if (req.params.id) {
+
+            if(req.body.subdivision){
+                let subdivisions = req.body.subdivision
+                
+                if(subdivisions.length >= 2){
+                    for(let i in subdivisions){
+                        let rooms = subdivisions[i].rooms   
+
+                        for (let j in rooms){
+                            let assets = rooms[j].assets
+                            /**
+                             *  Here we are passing list of assets to a map function to get the respective machine data
+                                but to get machine data from database we need to apply async await to map function
+                                and to avoid incomplete data or promise from map funtion we have used Promise.all() to get 
+                                all the promised data first and then append it to mapdata variable 
+                             */
+                            if(typeof assets !== 'undefined'){
+                                let mapdata = await Promise.all(assets.map(async (asset)=>{
+                                    let data = await machinedata.find({model_name:asset})
+                                    return data[0]
+                                }))
+                                // replacing the original data with the mapped data
+                                subdivisions[i].rooms[j].assets = mapdata
+                            }
+                        }
+    
+                    }
+                }else{
+                    let rooms = subdivisions[0].rooms   
+                    for (let i in rooms){
+                        let assets = rooms[i].assets
+                        /**
+                         *  Here we are passing list of assets to a map function to get the respective machine data
+                            but to get machine data from database we need to apply async await to map function
+                            and to avoid incomplete data or promise from map funtion we have used Promise.all() to get 
+                            all the promised data first and then append it to mapdata variable 
+                            */
+                        if(typeof assets !== 'undefined'){
+                            let mapdata = await Promise.all(assets.map(async (asset)=>{
+                                let data = await machinedata.find({model_name:asset})
+                                return data[0]
+                            }))
+                            // replacing the original data with the mapped data
+                            subdivisions[0].rooms[i].assets = mapdata
+                        }
+                    }
+                }          
+            }
+
             const updatelocation = await Location.findByIdAndUpdate({ _id: req.params.id }, { $push: req.body }, { new: true })
             const updatedata = await updatelocation.save()
             res.status(200).json({ msg: "location updated successfully" })
@@ -645,16 +761,18 @@ const deleteLocation = async(req, res) => {
 // get checklists
 const getChecklist = async(req, res) => {
     try {
+        // pagination parameters
+        const { page = 1,limit = 9 } = req.query
 
         if (req.query.machine_name) {
-            const getchecklist = await checklist.find({ machine_name: req.query.machine_name }).populate("machine_name", "model_name").exec()
+            const getchecklist = await checklist.find({ machine_name: req.query.machine_name }).populate("machine_name", "model_name").limit(limit*1).skip((page - 1)*limit).exec()
             const total = getchecklist.length
 
             if (total == 0) return res.status(404).json({ msg: "no checklist found" })
 
             return res.status(200).json({ checklist: getchecklist, total: total })
         }
-        const getchecklist = await checklist.find({}).populate('machine_name', 'model_name').populate('task_list', 'task').exec()
+        const getchecklist = await checklist.find({}).populate('machine_name', 'model_name').populate('task_list', 'task').limit(limit*1).skip((page - 1)*limit).exec()
         const total = getchecklist.length
 
         if (total == 0) return res.status(404).json({ msg: "no checklist found" })
