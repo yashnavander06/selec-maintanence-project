@@ -10,7 +10,7 @@ const bcrypt = require('bcrypt');
 
 //////////////////////////////////////////////////// User Section ////////////////////////////////////////////////////
 
-// get all users
+// get all users 
 const getUsers = async(req, res) => {
     try {
         // pagination parameters
