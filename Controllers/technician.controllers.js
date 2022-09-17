@@ -6,7 +6,7 @@ var fs = require('fs');
 var path = require('path');
 
 // Image Upload
-const imageUpload = async(req, res) => {
+const imageUpload = async (req, res) => {
     try {
         const image = req.file.firebaseUri
         const imagename = req.file.originalname
@@ -27,16 +27,16 @@ const imageUpload = async(req, res) => {
 }
 
 //Workorder
-const workOrder = async(req, res) => {
+const workOrder = async (req, res) => {
     try {
         // pagination parameters
-        const { page = 1,limit = 9 } = req.query
+        const { page = 1, limit = 9 } = req.query
 
         const username = req.valid.username // data retrived from token
         const user = await findUser(username)
 
         const techniid = user._id.toString()
-        const ticketdis = await Ticket.find({accepted_by: techniid}).limit(limit * 1).skip((page - 1)* limit).exec()
+        const ticketdis = await Ticket.find({ accepted_by: techniid }).limit(limit * 1).skip((page - 1) * limit).exec()
 
         return res.status(200).send({ tickets: ticketdis, totalcount: ticketdis.length })
 
@@ -46,10 +46,10 @@ const workOrder = async(req, res) => {
 }
 
 //Ticket display
-const ticketDisplay = async(req, res) => {
+const ticketDisplay = async (req, res) => {
     try {
         // pagination parameters
-        const { page = 1,limit = 9 } = req.query
+        const { page = 1, limit = 9 } = req.query
 
         const username = req.valid.username // data retrived from token
         const user = await findUser(username)
@@ -57,23 +57,22 @@ const ticketDisplay = async(req, res) => {
         const userskills = user.skills
 
         let filteredTicketsList = []
-        for (let i in userskills){
+        for (let i in userskills) {
             let userskill = userskills[i].toString()
-            const filteredTicket = await Ticket.find({asset_name: userskill, accepted_by: null, accepted: false, ticket_type: 'trouble'}).populate('asset_name','asset_name').limit(limit * 1).skip((page - 1)* limit).exec()
-            if(typeof filteredTicket !== 'undefined'){
+            const filteredTicket = await Ticket.find({ asset_name: userskill, accepted_by: null, accepted: false, ticket_type: 'trouble' }).populate('asset_name', 'asset_name').limit(limit * 1).skip((page - 1) * limit).exec()
+            if (typeof filteredTicket !== 'undefined') {
                 /**
                  * we used spread operator (...) to push everything inside filteredTicket list to filteredTicketsList list
                     without the spread operator we will only get the first data/object of the list 
-                 */  
+                 */
 
                 filteredTicketsList.push(...filteredTicket)
             }
         }
-        console.log(filteredTicketsList)
-    
+
         const info = []
-        for (let i in filteredTicketsList){
-            if(typeof filteredTicketsList[i] !== 'undefined'){
+        for (let i in filteredTicketsList) {
+            if (typeof filteredTicketsList[i] !== 'undefined') {
 
                 let displayTicket = {
                     _id: filteredTicketsList[i]._id,
@@ -84,11 +83,11 @@ const ticketDisplay = async(req, res) => {
                     openat: filteredTicketsList[i].open_at,
                     location: filteredTicketsList[i].location,
                 }
-        
+
                 info.push(displayTicket)
             }
         }
-  
+
         return res.status(200).send({
             tickets: info,
             totalcount: info.length
@@ -99,22 +98,20 @@ const ticketDisplay = async(req, res) => {
 }
 
 //Ticket accept
-const ticketAccept = async(req, res) => {
+const ticketAccept = async (req, res) => {
 
     try {
         const username = req.valid.username // data retrived from token
         const user = await findUser(username)
         const userid = user._id
-        await Ticket.findOneAndUpdate({
-            _id: req.params.ticketid
-        }, {
+        await Ticket.findOneAndUpdate({ _id: req.params.ticketid }, {
             $set: {
                 "accepted": "true",
                 "accepted_by": userid
             }
         }, { new: true })
 
-        return res.status(200).send({msg:"The Ticket has been accepted"})
+        return res.status(200).send({ msg: "The Ticket has been accepted" })
     } catch (error) {
         return res.status(500).json({ error: error })
     }

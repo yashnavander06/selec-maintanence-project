@@ -6,7 +6,7 @@ const schedule = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'assetsConfig'
     },
-    asset_list: {
+    asset_name: {
         type: Schema.Types.ObjectId,
         ref: 'assetData'
     },
@@ -15,15 +15,16 @@ const schedule = new Schema({
         require: true
     },
     schedular: {
-        type: Date,
+        type: String,
+        enum: ['weekly','quaterly','monthly','yearly'],
         require: true
     },
     day: {
-        type: Date,
+        type: String,
         require: true
     },
     start_time: {
-        type: Date,
+        type: String,
         require: true
     },
     checklist_selection: {

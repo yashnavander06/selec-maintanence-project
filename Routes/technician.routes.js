@@ -8,7 +8,7 @@ const { upload } = require('../Middleware/imageUpload.middleware')
 const {uploadImage} = require('../Services/firebase')
 
 // Upload Image
-routers.post('/upload', upload.single('image'), uploadImage, technicianControllers.imageUpload);
+routers.post('/upload', checkAuth, checkRole(config.ROLE.TECHNICIAN_INTERNAL), upload.single('image'), uploadImage, technicianControllers.imageUpload);
 
 // get accepted tickets
 routers.get('/workorder', checkAuth, checkRole(config.ROLE.TECHNICIAN_INTERNAL), technicianControllers.workOrder);

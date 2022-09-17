@@ -4,7 +4,9 @@ const bodyParser = require('body-parser');
 const connection = require('./Config/db.connect')
 const cors = require('cors')
 require('dotenv').config({path: './Config/.env'});
-
+const {init, agenda} = require('./Config/agendaconfig');
+init();
+var Agendash = require("agendash");
 // initialize express
 const app = express();
 
@@ -17,6 +19,9 @@ connection();
 // Setting up CORS config
 app.use(cors())
 
+// Agenda Dashboard
+app.use("/dash", Agendash(agenda));
+
 // Import Routes
 const Loginroute = require('./Routes/Login.routes') // Login routes
 app.use('/login', Loginroute);
@@ -28,6 +33,8 @@ const techinternalroutes = require('./Routes/technician.routes'); // Technician 
 app.use('/technician',techinternalroutes)
 const DummyRoute = require('./Routes/test.routes') // Dummy routes
 app.use('/test', DummyRoute)
+
+
 
 // default and incorrect route
 app.get('/', (req, res) => {

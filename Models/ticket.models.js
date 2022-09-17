@@ -81,15 +81,9 @@ const ticket = Schema({
         default: null
     },
     location: {
-        type: String
-        // eg area 1 or area 2
+        type: Schema.Types.ObjectId,
+        ref: 'location'
     }
-    // requestee_image:{
-    //     type: Buffer
-    // },
-    // technician_image:{
-    //     type: Buffer
-    // }
 })
 
 ticket.pre('deleteOne',{ document: false, query: true }, async function(next){

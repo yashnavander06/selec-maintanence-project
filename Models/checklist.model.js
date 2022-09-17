@@ -25,6 +25,11 @@ const taskList = new Schema({
 }, { timestamps: true })
 
 const checkList = new Schema({
+    checklist_name:{
+        type: String,
+        required: true,
+        unique: true
+    },
     machine_name: {
         type: Schema.Types.ObjectId,
         ref: 'machineData',
