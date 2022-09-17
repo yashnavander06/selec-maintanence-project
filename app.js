@@ -5,7 +5,7 @@ const connection = require('./Config/db.connect')
 const cors = require('cors')
 require('dotenv').config({path: './Config/.env'});
 const {init, agenda} = require('./Config/agendaconfig');
-init();
+// init();
 var Agendash = require("agendash");
 // initialize express
 const app = express();
