@@ -513,7 +513,7 @@ const getSchedular = async (req, res) => {
         const { page = 1, limit = 9 } = req.query
 
         if (req.query.asset_category) {
-            const schedular = await Schedular.find({ asset_category: req.query.asset_category }).limit(limit * 1).skip((page - 1) * limit).exec();
+            const schedular = await Schedular.find({ asset_category: req.query.asset_category }).populate('asset_name', 'model_name').populate('checklist_selection', 'checklist_name').limit(limit * 1).skip((page - 1) * limit).exec();
             const total = schedular.length;
 
             if (total == 0) return res.status(404).json({ msg: "no schedules found" })
@@ -521,7 +521,7 @@ const getSchedular = async (req, res) => {
             res.status(200).json({ Schedules: schedular, total: total })
         }
 
-        const schedular = await Schedular.find({}).limit(limit * 1).skip((page - 1) * limit).exec();
+        const schedular = await Schedular.find({}).populate('asset_name', 'model_name').populate('checklist_selection', 'checklist_name').limit(limit * 1).skip((page - 1) * limit).exec();
         const total = schedular.length;
 
         if (total == 0) return res.status(404).json({ msg: "no schedules found" })
@@ -552,9 +552,9 @@ const getOneSchedule = async (req, res) => {
 // add schedular
 const addSchedular = async (req, res) => {
     try {
-        
-        if (req.body.checklist_selection) {
-            const checklistexists = await checklist.find({ checklist_name: req.body.checklist_selection })
+
+        if (req.body.ticket_selection ) {
+            const checklistexists = await Ticket.find({ asset_name: req.body.ticket_selection })
             if (checklistexists) {
                 req.body.asset_name = checklistexists[0].machine_name
                 req.body.checklist_selection = checklistexists[0]
@@ -562,13 +562,13 @@ const addSchedular = async (req, res) => {
 
                     console.log(req.body)
                     const newSchedule = new Schedular(req.body)
-                    newSchedule.save((err,result)=>{
-                        if(!err){
+                    newSchedule.save((err, result) => {
+                        if (!err) {
 
                             return res.status(201).json({ msg: "data saved successfully" })
                         }
 
-                        if(err){
+                        if (err) {
                             console.log(err)
                             return res.status(400).json({ error: err })
                         }
@@ -897,13 +897,13 @@ const addChecklist = async (req, res) => {
                 // finally create the checklist and save
                 const newchecklist = new checklist(req.body)
                 // add checklist id to new tasklist after saving the checklist data 
-                newchecklist.save(async (err,result)=>{
-                    if(!err){
+                newchecklist.save(async (err, result) => {
+                    if (!err) {
 
                         // post save opration
                         // update checklist_id attribute of tasklist after saving new checklist
                         let checklistid = result._id
-        
+
                         for (let i in result.task_list) {
                             const updatetasklist = await tasklist.findByIdAndUpdate({ _id: result.task_list[i]._id }, { $push: { checklist_id: checklistid } })
                             await updatetasklist.save()
@@ -912,7 +912,7 @@ const addChecklist = async (req, res) => {
                         return res.status(201).json({ msg: "checklist added successfully" })
                     }
 
-                    if(err){
+                    if (err) {
                         console.log(err)
                         return res.status(400).json({ error: err })
                     }

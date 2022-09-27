@@ -24,4 +24,7 @@ routers.patch('/closeTicket/:ticketid', checkAuth, checkRole(config.ROLE.TECHNIC
 
 // open ticket
 routers.patch('/acceptTicket/:ticketid', checkAuth, checkRole(config.ROLE.TECHNICIAN_INTERNAL), technicianControllers.ticketAccept)
+
+// get location
+routers.get('/getlocation',checkAuth,checkRole(config.ROLE.TECHNICIAN_INTERNAL), technicianControllers.getLocation)
 module.exports = routers;

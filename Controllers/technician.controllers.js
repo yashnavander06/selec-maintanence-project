@@ -2,6 +2,7 @@ const { findUser } = require('../Middleware/checkAuth.middleware')
 const upload = require('../Middleware/imageUpload.middleware')
 const { imageModel } = require('../Models/checklist.model')
 const { Ticket } = require('../Models/ticket.models')
+const {Location} = require('../Models/location.model')
 var fs = require('fs');
 var path = require('path');
 
@@ -45,7 +46,7 @@ const workOrder = async (req, res) => {
     }
 }
 
-//Ticket display
+//Ticket display - display all tickets 
 const ticketDisplay = async (req, res) => {
     try {
         // pagination parameters
@@ -117,4 +118,23 @@ const ticketAccept = async (req, res) => {
     }
 }
 
-module.exports = { workOrder, ticketAccept, ticketDisplay, imageUpload }
+const getLocation = async (req, res) => {
+    try {
+        
+        // send only floor and rooms data of specific building
+        if(req.query.building_no){
+            const floorandrooms = await Location.find({unit_or_building: req.query.building_no}).select('subdivision').populate('subdivision.rooms.assets', 'model_name')
+            return res.status(200).json({floorandrooms: floorandrooms})
+        }
+
+        // send only building names
+        const buildings = await Location.find({}).select('unit_or_building')
+        return res.status(200).json({buildings: buildings})
+
+        
+    } catch (error) {
+        return new Error({error:error})
+    }
+}
+
+module.exports = { workOrder, ticketAccept, ticketDisplay, imageUpload, getLocation }

@@ -8,7 +8,7 @@ const schedule = new Schema({
     },
     asset_name: {
         type: Schema.Types.ObjectId,
-        ref: 'assetData'
+        ref: 'machineData'
     },
     maintainence_type: {
         type: String,

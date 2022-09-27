@@ -2,7 +2,17 @@ const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
 const ticket = Schema({
-    client_id: {
+    // ticket_name:{
+    //     type: String,
+    //     default: function(){
+    //         let name = 'ticket'
+    //         let count = 1
+    //         let ticketname = name + String(count)
+    //         count ++
+    //         return ticketname
+    //     }
+    // },
+    requestee_id: {
         type: Schema.Types.ObjectId,
         ref: "user"
     },
@@ -83,6 +93,10 @@ const ticket = Schema({
     location: {
         type: Schema.Types.ObjectId,
         ref: 'location'
+    },
+    checklist:{
+        type: Schema.Types.ObjectId,
+        ref: 'checkList'
     }
 })
 
