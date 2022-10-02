@@ -1,0 +1,15 @@
+# node files
+node_modules
+
+# testing files or others
+loginFile.txt
+README.md 
+testing.rest
+
+# docker files
+.dockerignore
+Dockerfile
+
+# git files
+.git
+.gitignore

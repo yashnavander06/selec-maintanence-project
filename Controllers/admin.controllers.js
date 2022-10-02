@@ -5,6 +5,7 @@ const { Location } = require('../Models/location.model')
 const { Schedular } = require('../Models/schedular.model')
 const { checklist, tasklist } = require('../Models/checklist.model')
 const { getLength, checkReduncancy } = require('../Helper/admin.helper')
+const utils = require('../Utils/common.utils')
 
 const bcrypt = require('bcrypt');
 
@@ -81,16 +82,26 @@ const addUser = async (req, res) => {
 
         }
 
-        if (req.body.location) {
-            let addlocation = await Location.find({})
-        }
+        // if (req.body.location) {
+        //     let addlocation = await Location.find({})
+        // }
+
+        // convert any upper case letters to lower before sending to database
+        req.body = utils.lowercasedata(req.body)
 
         const newUser = new User(req.body)
         const saltRounds = await bcrypt.genSalt(10);
         newUser.password = await bcrypt.hash(newUser.password, saltRounds)
 
-        const Userdata = await newUser.save();
-        res.json(Userdata);
+        newUser.save((err,result)=>{
+            if(!err){
+                return res.status(201).json({msg: "user created successfully"});
+            }
+            if(err){
+                return res.status(501).json({msg: "an error occured, try again"});
+            }
+        });
+        res.status(201).json({msg: "user created successfully"});
     } catch (error) {
         res.json({ message: error.message });
     }
@@ -205,10 +216,18 @@ const updateUser = async (req, res) => {
                     "skills": req.body.skills
                 }
             }, { new: true })
-            // console.log(updateuser)
-            const up = await updateuser.save();
-            return res.status(200).json(up);
 
+            // convert any upper case letters to lower before sending to database
+            req.body = utils.lowercasedata(req.body)
+
+            const up = await updateuser.save((err,result)=>{
+                if(!err){
+                    return res.status(200).json({msg: "user updated successfully"});
+                }
+                if(err){
+                    return res.status(501).json({msg: "an error occured, try again"});
+                }
+            });
         }
         return new Error({ error: "update fields cannot be empty" })
 
@@ -244,10 +263,19 @@ const deleteUser = async (req, res) => {
 
 // add new role
 const addRole = async (req, res) => {
-    const newRole = new Role(req.body)
     try {
-        const Roledata = await newRole.save();
-        res.json(Roledata);
+        // convert any upper case letters to lower before sending to database
+        req.body = utils.lowercasedata(req.body)
+
+        const newRole = new Role(req.body)       
+        newRole.save((err,result)=>{
+            if(!err){
+                return res.status(201).json({msg: "role created successfully"});
+            }
+            if(err){
+                return res.status(501).json({msg: "an error occured, try again"});
+            }
+        });
     } catch (error) {
         res.json({ message: error.message });
     }
@@ -294,7 +322,7 @@ const getAsset = async (req, res) => {
         const getassets = await Asset.find({}).limit(limit * 1).skip((page - 1) * limit).exec()
         if (getassets.length == 0) return res.status(404).json({ msg: "No assets Found" })
 
-        return res.json(getassets)
+        return res.status(200).json(getassets)
     } catch (error) {
         console.log(error)
         res.json({ message: error.message });
@@ -305,11 +333,18 @@ const getAsset = async (req, res) => {
 const addAsset = async (req, res) => {
     try {
 
-        const assetlocation = Location.find()
+        // convert any upper case letters to lower before sending to database
+        req.body = utils.lowercasedata(req.body)
 
         const newAasset = new Asset(req.body)
-        const assetData = await newAasset.save();
-        res.status(201).json(assetData);
+        newAasset.save((err,result)=>{
+            if(!err){
+                return res.status(201).json({msg: "asset created successfully"});
+            }
+            if(err){
+                return res.status(501).json({msg: "an error occured, try again"});
+            }
+        });
 
     } catch (error) {
         res.json({ message: error.message });
@@ -348,9 +383,18 @@ const addAssetCategory = async (req, res) => {
             req.body.asset_list = udata
         }
 
+        // convert any upper case letters to lower before sending to database
+        req.body = utils.lowercasedata(req.body)
+
         const addassetcategory = new assetsconfig(req.body)
-        const assetcategorydata = await addassetcategory.save()
-        res.status(201).json(assetcategorydata)
+        addassetcategory.save((err,result)=>{
+            if(!err){
+                return res.status(201).json({msg: "category created successfully"});
+            }
+            if(err){
+                return res.status(501).json({msg: "an error occured, try again"});
+            }
+        })
     } catch (error) {
         res.json({ message: error.message });
     }
@@ -414,9 +458,19 @@ const updateAssetCategory = async (req, res) => {
                         "asset_list": req.body.asset_list
                     }
                 }, { new: true })
-                console.log(updateassetcategory)
-                const uac = await updateassetcategory.save();
-                return res.status(200).json(uac)
+
+                // convert any upper case letters to lower before sending to database
+                req.body = utils.lowercasedata(req.body)
+
+                updateassetcategory.save((err,result)=>{
+                    if(!err){
+                        return res.status(200).json({msg: "category updated successfully"});
+                    }
+                    if(err){
+                        return res.status(501).json({msg: "an error occured, try again"});
+                    }
+                });
+                
             }
             return res.status(422).json({ msg: "asset list already exits" })
         }
@@ -449,9 +503,18 @@ const deleteAssetCategory = async (req, res) => {
 // add machine
 const addMachine = async (req, res) => {
     try {
+        // convert any upper case letters to lower before sending to database
+        req.body = utils.lowercasedata(req.body)
+
         const newmachine = new machinedata(req.body)
-        const Nmachinedata = await newmachine.save()
-        res.status(201).json(Nmachinedata)
+        newmachine.save((err,result)=>{
+            if(!err){
+                return res.status(201).json({msg: "machine created successfully"});
+            }
+            if(err){
+                return res.status(501).json({msg: "an error occured, try again"});
+            }
+        })
     } catch (error) {
         return new Error(error)
     }
@@ -494,9 +557,18 @@ const deleteMachine = async (req, res) => {
 const updateMachine = async (req, res) => {
     try {
         if (req.params.id) {
+            // convert any upper case letters to lower before sending to database
+            req.body = utils.lowercasedata(req.body)
+
             const machineupdate = await machinedata.findByIdAndUpdate({ _id: req.params.id }, { $set: req.body }, { new: true })
-            const Mdata = await machineupdate.save()
-            res.status(200).json({ data: Mdata })
+            machineupdate.save((err,result)=>{
+                if(!err){
+                    return res.status(200).json({msg: "machine updated successfully"});
+                }
+                if(err){
+                    return res.status(501).json({msg: "an error occured, try again"});
+                }
+            })
         }
         res.json({ message: "machineid is required" })
     } catch (error) {
@@ -654,9 +726,18 @@ const addLocation = async (req, res) => {
             }
         }
 
+        // convert any upper case letters to lower before sending to database
+        req.body = utils.lowercasedata(req.body)
+
         const newLocation = new Location(req.body)
-        const locationdata = await newLocation.save()
-        res.status(201).json({ "new Location": locationdata })
+        newLocation.save((err,result)=>{
+            if(!err){
+                return res.status(201).json({msg: "location created successfully"});
+            }
+            if(err){
+                return res.status(501).json({msg: "an error occured, try again"});
+            }
+        })
     } catch (error) {
         return new Error(error)
     }
@@ -703,7 +784,7 @@ const updateLocation = async (req, res) => {
     try {
         if (req.params.id) {
 
-            if (req.body.subdivision) {
+            if (req.body.subdivision) { 
                 let subdivisions = req.body.subdivision
 
                 if (subdivisions.length >= 2) {
@@ -750,10 +831,18 @@ const updateLocation = async (req, res) => {
                     }
                 }
             }
+            // convert any upper case letters to lower before sending to database
+            req.body = utils.lowercasedata(req.body)
 
             const updatelocation = await Location.findByIdAndUpdate({ _id: req.params.id }, { $push: req.body }, { new: true })
-            const updatedata = await updatelocation.save()
-            res.status(200).json({ msg: "location updated successfully" })
+            const updatedata = await updatelocation.save((err,result)=>{
+                if(!err){
+                    return res.status(200).json({msg: "location updated successfully"});
+                }
+                if(err){
+                    return res.status(501).json({msg: "an error occured, try again"});
+                }
+            })
         }
         res.status(400).json({ message: "location id is required" })
 
@@ -894,6 +983,9 @@ const addChecklist = async (req, res) => {
 
                 }
 
+                // convert any upper case letters to lower before sending to database
+                req.body = utils.lowercasedata(req.body)
+
                 // finally create the checklist and save
                 const newchecklist = new checklist(req.body)
                 // add checklist id to new tasklist after saving the checklist data 
@@ -909,7 +1001,7 @@ const addChecklist = async (req, res) => {
                             await updatetasklist.save()
                         }
 
-                        return res.status(201).json({ msg: "checklist added successfully" })
+                        return res.status(201).json({ msg: "checklist created successfully" })
                     }
 
                     if (err) {
@@ -918,7 +1010,6 @@ const addChecklist = async (req, res) => {
                     }
 
                 })
-
 
             } else return res.status(400).json({ msg: "machine name cannot be empty" })
 

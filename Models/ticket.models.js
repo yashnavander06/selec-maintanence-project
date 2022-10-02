@@ -1,6 +1,22 @@
 const mongoose = require('mongoose')
 const Schema = mongoose.Schema
 
+const locationdata = Schema({
+    unit_building: {
+        type: String,
+        required: true
+    },
+    floor: {
+        type: String,
+        required: true
+    },
+    room: {
+        type: String,
+        required: true
+    }
+}, { _id: false })
+
+
 const ticket = Schema({
     // ticket_name:{
     //     type: String,
@@ -25,61 +41,62 @@ const ticket = Schema({
     description: {
         type: String,
         maxlength: 250,
-        require: true,
+        required: true,
         default: ""
     },
     company: {
         type: String,
-        require: true,
+        required: true,
         default: "selec"
     },
     status: {
         type: String,
         maxlength: 30,
-        require: true,
+        required: true,
         default: "open"
     },
-    reason:{
+    reason: {
         type: String,
         maxlength: 350,
-        require: true,
         default: ""
     },
-    escalated: {
-        type: String,
-        maxlength: 30,
-        require: true,
-        default: null 
+    escalate: {
+        // escalted is required if is_escalated is defined by the user (escalated_reason is required too) or else default is false
+        type: new Schema({
+            is_escalated: Boolean,
+            escalated_reason: {
+                type: String,
+                maxlength: 350,
+                required: true,
+                default: null
+            },
+        }, { _id: false }),
+        required: false,
     },
-    escalated_reason: {
-        type: String,
-        maxlength: 350,
-        require: true,
-        default: null
-    },
+
     open_at: {
         type: Date,
-        require: true,
-        default: function(){
+        required: true,
+        default: function () {
             var utc = new Date();
-            utc.setHours( utc.getHours() + 5);
-            utc.setMinutes( utc.getMinutes() + 30);
+            utc.setHours(utc.getHours() + 5);
+            utc.setMinutes(utc.getMinutes() + 30);
             return utc
         }
     },
-    close_at:{
+    close_at: {
         type: Date,
-        require: true,
         default: null
     },
     ticket_type: {
         type: String,
-        require: true,
+        required: true,
         default: "schdule"
     },
     asset_name: {
         type: Schema.Types.ObjectId,
-        ref: "assetData"
+        ref: "assetData",
+        required: true
     },
     accepted: {
         type: Boolean,
@@ -91,21 +108,21 @@ const ticket = Schema({
         default: null
     },
     location: {
-        type: Schema.Types.ObjectId,
-        ref: 'location'
+        type: locationdata,
+        required: true
     },
-    checklist:{
+    checklist: {
         type: Schema.Types.ObjectId,
         ref: 'checkList'
     }
 })
 
-ticket.pre('deleteOne',{ document: false, query: true }, async function(next){
+ticket.pre('deleteOne', { document: false, query: true }, async function (next) {
     const doc = await this.model.findOne(this.getFilter())
     if (doc === null) next()
-    
+
     await this.model.findByIdAndDelete(this.getFilter()).exec()
     next()
 })
 
-module.exports = {Ticket: mongoose.model("ticket", ticket)}
+module.exports = { Ticket: mongoose.model("ticket", ticket) }

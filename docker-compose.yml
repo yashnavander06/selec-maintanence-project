@@ -1,0 +1,9 @@
+version: '3'
+services:
+  selec-app:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./:/selec-maintainence-backend:ro
+      - /selec-maintainence-backend/node_modules
