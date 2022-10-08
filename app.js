@@ -1,5 +1,4 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const connection = require('./Config/db.connect')
 const cors = require('cors')
@@ -33,8 +32,6 @@ const techinternalroutes = require('./Routes/technician.routes'); // Technician 
 app.use('/technician',techinternalroutes)
 const DummyRoute = require('./Routes/test.routes') // Dummy routes
 app.use('/test', DummyRoute)
-
-
 
 // default and incorrect route
 app.get('/', (req, res) => {
