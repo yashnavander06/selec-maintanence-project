@@ -2,7 +2,7 @@
 var admin = require("firebase-admin");
 
 // import json file provided by firebase admin storage
-var serviceAccount = require("../config/selec-maintainence-project-firebase-adminsdk-bmf25-019508a054.json");
+var serviceAccount = require("../Config/selec-maintainence-project-firebase-adminsdk-bmf25-019508a054.json");
 
 // location of firebase project
 const BUCKET = 'selec-maintainence-project.appspot.com'

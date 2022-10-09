@@ -1,6 +1,6 @@
 const { validateToken } = require('../Middleware/jsonToken.middleware')
 const { User, Role } = require('../Models/users.model')
-const config = require('../config/config.json')
+const config = require('../Config/config.json')
 
 function checkRole(role) {
     return (req, res, next) => {

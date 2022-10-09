@@ -1,9 +1,9 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const connection = require('./config/db.connect')
+const connection = require('./Config/db.connect')
 const cors = require('cors')
-require('dotenv').config({path: './config/.env'});
-const {init, agenda} = require('./config/agendaconfig');
+require('dotenv').config({ path: './Config/.env' });
+const { init, agenda } = require('./Config/agendaconfig');
 // init();
 var Agendash = require("agendash");
 // initialize express
@@ -11,7 +11,6 @@ const app = express();
 
 // Body-Parser initialization
 app.use(bodyParser.json());
-
 // Database Connection
 connection();
 
@@ -29,7 +28,7 @@ app.use('/admin', adminRoutes);
 const requesteeRoutes = require('./Routes/requestee.routes') // Requestee routes
 app.use('/requestee', requesteeRoutes)
 const techinternalroutes = require('./Routes/technician.routes'); // Technician routes
-app.use('/technician',techinternalroutes)
+app.use('/technician', techinternalroutes)
 const DummyRoute = require('./Routes/test.routes') // Dummy routes
 app.use('/test', DummyRoute)
 
@@ -38,7 +37,7 @@ app.get('/', (req, res) => {
     res.send("Selec Server");
 })
 app.use("*", (req, res) => {
-   return res.status(404).json({ msg: "Request Not Found" })
+    return res.status(404).json({ msg: "Request Not Found" })
 })
 
 // app connection
