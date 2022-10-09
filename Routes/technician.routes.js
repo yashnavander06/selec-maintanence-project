@@ -3,7 +3,7 @@ const routers = express.Router();
 const technicianControllers = require('../Controllers/technician.controllers')
 const TicketControllers = require('../Controllers/ticket.controllers')
 const { checkAuth, checkRole } = require('../Middleware/checkAuth.middleware')
-const config = require('../Config/config.json')
+const config = require('../config/config.json')
 const { upload } = require('../Middleware/imageUpload.middleware')
 const {uploadImage} = require('../Services/firebase')
 

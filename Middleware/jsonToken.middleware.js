@@ -1,6 +1,6 @@
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
-const config = require('../Config/config.json')
+const config = require('../config/config.json')
 
 // Generate JWT Token
 function generateToken(username, role, interface) {

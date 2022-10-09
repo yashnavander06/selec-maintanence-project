@@ -1,9 +1,9 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const connection = require('./Config/db.connect')
+const connection = require('./config/db.connect')
 const cors = require('cors')
-require('dotenv').config({path: './Config/.env'});
-const {init, agenda} = require('./Config/agendaconfig');
+require('dotenv').config({path: './config/.env'});
+const {init, agenda} = require('./config/agendaconfig');
 // init();
 var Agendash = require("agendash");
 // initialize express

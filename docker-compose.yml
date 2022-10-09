@@ -6,6 +6,6 @@ services:
       - "3000:3000"
     volumes:
       # local file path : container path : access type
-      - ./:/selec-maintainence-backend:ro
+      - ./:/selec-maintainence-backend
       # specifing volume only reserved for specific package or module which will be not affected on image rebuilding if no changes detected
       - /selec-maintainence-backend/node_modules
