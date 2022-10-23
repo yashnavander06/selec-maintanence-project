@@ -1,7 +1,12 @@
 FROM node:16.15.1-alpine
-WORKDIR /selec-maintainence-backend
-COPY package*.json .
+WORKDIR /Selec-Maintainence-App-Backend
+ADD package*.json ./
 RUN npm install
-COPY . .
-EXPOSE 3000
-CMD [ "npm", "start"]
+ADD app.js ./
+ADD .env ./
+ADD ./Controllers ./
+ADD ./Models ./
+ADD ./Middleware ./
+ADD ./Routes ./
+ADD ./Helper ./
+CMD [ "node", "app.js"]

@@ -8,7 +8,7 @@ module.exports = {
         type: 'every',
         handler: ticketSchedular
     }
-
+    
     // ticket_schedular1: {
     //     time: '3 seconds',
     //     type: 'every',

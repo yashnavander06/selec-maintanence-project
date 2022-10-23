@@ -1,6 +1,10 @@
 const bcrypt = require('bcrypt')
 const { generateToken } = require('../Middleware/jsonToken.middleware')
 const {findUser, getLoginRole, getInterface} = require('../Middleware/checkAuth.middleware')
+const express = require('express');
+const pino = require('pino');
+const expressPino = require('express-pino-logger');
+const logger = pino({level: process.env.LOG_LEVEL || 'info' }, pino.destination(`${__dirname}/logger.log`));
 
 const login = async(req, res) => {
     let username = req.body.username;
@@ -23,9 +27,11 @@ const login = async(req, res) => {
             }
             return res.status(400).json({ msg: 'incorrect password' });
         }
-        return res.status(404).json({ error: "Username not found" })
+        return res.status(404).json({ error: "Username not found" }),
+        logger.info('This is a Login of User')
 
     } catch (err) {
+        logger.info('There is a error in Login of User')
         return new Error(err)
     }
 

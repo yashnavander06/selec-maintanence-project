@@ -1,15 +1,16 @@
 const express = require('express')
 const routers = express.Router();
 const adminControllers = require('../Controllers/admin.controllers')
-const config = require('../Config/config.json')
+const config = require('../config/config.json')
 const { checkAuth, checkRole } = require('../Middleware/checkAuth.middleware')
 const TicketControllers = require('../Controllers/ticket.controllers')
+const logger = require('../Config/logger')
 
 //////////////////////////////////////////////////// User Section ///////////////////////////////////////////////////
 
 // Get one/all user/s
-routers.get('/', checkAuth, checkRole(config.ROLE.ADMIN), adminControllers.getUsers)
 
+routers.get('/', checkAuth, checkRole(config.ROLE.ADMIN), adminControllers.getUsers)
 // Add user
 routers.post('/add_user', checkAuth, checkRole(config.ROLE.ADMIN), adminControllers.addUser)
 
@@ -130,5 +131,8 @@ routers.get('/checklist/:id', checkAuth, checkRole(config.ROLE.ADMIN), adminCont
 
 // add checklist
 routers.post('/add_checklist', checkAuth, checkRole(config.ROLE.ADMIN), adminControllers.addChecklist)
+
+// export ticket
+routers.get('/export-Ticket', checkAuth, checkRole(config.ROLE.ADMIN), adminControllers.exportTicket)
 
 module.exports = routers;

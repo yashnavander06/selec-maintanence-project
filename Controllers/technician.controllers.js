@@ -5,6 +5,11 @@ const { Ticket } = require('../Models/ticket.models')
 const {Location} = require('../Models/location.model')
 var fs = require('fs');
 var path = require('path');
+const express = require('express');
+const pino = require('pino');
+const expressPino = require('express-pino-logger');
+
+const logger = pino({level: process.env.LOG_LEVEL || 'info' }  );
 
 // Image Upload
 const imageUpload = async (req, res) => {
@@ -20,8 +25,10 @@ const imageUpload = async (req, res) => {
         await newImage.save()
 
         res.status(200).json({ msg: "image uploaded successfully" })
+        logger.info('This is image Upload of Technician')
 
     } catch (err) {
+        logger.debug('There is a error in image upload of Technician')
         res.json({ message: err });
     }
 
@@ -39,9 +46,11 @@ const workOrder = async (req, res) => {
         const techniid = user._id.toString()
         const ticketdis = await Ticket.find({ accepted_by: techniid }).limit(limit * 1).skip((page - 1) * limit).exec()
 
-        return res.status(200).send({ tickets: ticketdis, totalcount: ticketdis.length })
+        return res.status(200).send({ tickets: ticketdis, totalcount: ticketdis.length }),
+        logger.info('This is work order of Technician')
 
     } catch (error) {
+        logger.debug('There is a error in work order of Technician')
         return res.status(500).json({ error: error })
     }
 }
@@ -92,8 +101,10 @@ const ticketDisplay = async (req, res) => {
         return res.status(200).send({
             tickets: info,
             totalcount: info.length
-        })
+        }),
+        logger.info('This is ticket display of Technician')
     } catch (error) {
+        logger.debug('There is a error in ticket display of Technician')
         return res.status(500).json({ error: error })
     }
 }
@@ -112,8 +123,10 @@ const ticketAccept = async (req, res) => {
             }
         }, { new: true })
 
-        return res.status(200).send({ msg: "The Ticket has been accepted" })
+        return res.status(200).send({ msg: "The Ticket has been accepted" }),
+        logger.info('This is ticket Accept of Technician')
     } catch (error) {
+        logger.debug('There is a error in ticket Accept of Technician')
         return res.status(500).json({ error: error })
     }
 }
@@ -129,10 +142,12 @@ const getLocation = async (req, res) => {
 
         // send only building names
         const buildings = await Location.find({}).select('unit_or_building')
-        return res.status(200).json({buildings: buildings})
+        return res.status(200).json({buildings: buildings}),
+        logger.info('This is get location of Admin')
 
         
     } catch (error) {
+        logger.debug('There is a error in Get Location of Technician')
         return new Error({error:error})
     }
 }

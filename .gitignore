@@ -8,6 +8,3 @@ selec-maintainence-project-firebase-adminsdk-bmf25-019508a054.json
 
 # dotenv environment variable files
 .env
-
-# docker files
-.dockerignore

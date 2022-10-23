@@ -5,43 +5,59 @@ const { Location } = require('../Models/location.model')
 const { Schedular } = require('../Models/schedular.model')
 const { checklist, tasklist } = require('../Models/checklist.model')
 const { getLength, checkReduncancy } = require('../Helper/admin.helper')
-const utils = require('../Utils/common.utils')
-
 const bcrypt = require('bcrypt');
+const { Ticket } = require('../Models/ticket.models')
+// const logger = require('../Config/logger')
+const express = require('express');
+const pino = require('pino');
+const expressPino = require('express-pino-logger');
+const logger = pino({level: process.env.LOG_LEVEL || 'info' }, pino.destination(`${__dirname}/logger.log`));
+const moment = require('moment')
+const excelJS = require('exceljs');
+const dateObject = new Date();
+
+
 
 //////////////////////////////////////////////////// User Section ////////////////////////////////////////////////////
-
+// logger.managerlogger.log(`info`)
 // get all users 
 const getUsers = async (req, res) => {
+
     try {
         // pagination parameters
-        const { page = 1, limit = 9 } = req.query
-
+        const { page = 1, limit = 9 } = req.query;
         let keys = req.query.user_id
         if (keys) {
             const user = await User.findOne({ user_id: keys }).populate('role', 'name').populate('asset_category', 'asset_category').populate('skills', 'asset_name').exec()
             if (user === null) return res.status(404).json({ msg: "No user Found" })
-            return res.send(user)
+            return res.send(user) 
         }
         let role = req.query.role
         if (role) {
+            
             const roleid = await Role.find({ name: role })
             role = roleid[0]._id.toString()
             const userrole = await User.find({ "role": role }).populate('role', 'name').populate('asset_category', 'asset_category').populate('skills', 'asset_name').limit(limit * 1).skip((page - 1) * limit).exec()
             const total = userrole.length;
+            
             if (userrole === null) return res.status(404).json({ msg: `No user with role: ${role} was found` })
-            return res.status(200).send({ users: userrole, total: total })
+            return res.status(200).send({ users: userrole, total: total }) 
+            
         }
         const users = await User.find({}).populate('role', 'name').populate('asset_category', 'asset_category').populate('skills', 'asset_name').limit(limit * 1).skip((page - 1) * limit).exec();
         const total = await User.count({});
-        if (users.length == 0) return res.status(404).json({ msg: "No users Found" })
-
-        return res.send({ users: users, total: total })
-
-    } catch (err) {
-        return res.status(500).json({ msg: err })
+        if (users.length == 0) return res.status(404).json({ msg: "No users Found" }) 
+        return res.send({ users: users, total: total }),
+        logger.info({req: username,res: username},'These is a Get User of Admin') 
     }
+
+    catch (err) {
+        logger.warn({msg:'There is a error in Get Users of Admin'})
+        return res.status(500).json({ msg: err }) 
+    }
+           
 }
+
 
 //  add new user
 const addUser = async (req, res) => {
@@ -82,27 +98,19 @@ const addUser = async (req, res) => {
 
         }
 
-        // if (req.body.location) {
-        //     let addlocation = await Location.find({})
-        // }
-
-        // convert any upper case letters to lower before sending to database
-        req.body = utils.lowercasedata(req.body)
+        if (req.body.location) {
+            let addlocation = await Location.find({})
+        }
 
         const newUser = new User(req.body)
         const saltRounds = await bcrypt.genSalt(10);
         newUser.password = await bcrypt.hash(newUser.password, saltRounds)
 
-        newUser.save((err,result)=>{
-            if(!err){
-                return res.status(201).json({msg: "user created successfully"});
-            }
-            if(err){
-                return res.status(501).json({msg: "an error occured, try again"});
-            }
-        });
-        res.status(201).json({msg: "user created successfully"});
+        const Userdata = await newUser.save();
+        res.json(Userdata);
+        logger.info('This is a Add Users of Admin')
     } catch (error) {
+        logger.debug('There is a error in Add Users of Admin')
         res.json({ message: error.message });
     }
 }
@@ -216,23 +224,17 @@ const updateUser = async (req, res) => {
                     "skills": req.body.skills
                 }
             }, { new: true })
+            // console.log(updateuser)
+            const up = await updateuser.save();
+            return res.status(200).json(up);
 
-            // convert any upper case letters to lower before sending to database
-            req.body = utils.lowercasedata(req.body)
-
-            const up = await updateuser.save((err,result)=>{
-                if(!err){
-                    return res.status(200).json({msg: "user updated successfully"});
-                }
-                if(err){
-                    return res.status(501).json({msg: "an error occured, try again"});
-                }
-            });
         }
-        return new Error({ error: "update fields cannot be empty" })
+        return new Error({ error: "update fields cannot be empty" }),
+        looger.info('This is a Update Users of Admin')
 
 
     } catch (error) {
+        logger.debug('There is a error in Update Users of Admin')
         return new Error(error.message)
 
     }
@@ -250,11 +252,13 @@ const deleteUser = async (req, res) => {
             if (err) {
                 return res.status(403).json(err)
             }
-            return res.status(403).json({ "message": "user not found" })
+            return res.status(403).json({ "message": "user not found" }),
+            logger.info('This is a Delete Users of Admin')
         })
 
 
     } catch (error) {
+        logger.debug('There is a error in Delete Users of Admin')
         return new Error(error)
     }
 }
@@ -263,20 +267,13 @@ const deleteUser = async (req, res) => {
 
 // add new role
 const addRole = async (req, res) => {
+    const newRole = new Role(req.body)
     try {
-        // convert any upper case letters to lower before sending to database
-        req.body = utils.lowercasedata(req.body)
-
-        const newRole = new Role(req.body)       
-        newRole.save((err,result)=>{
-            if(!err){
-                return res.status(201).json({msg: "role created successfully"});
-            }
-            if(err){
-                return res.status(501).json({msg: "an error occured, try again"});
-            }
-        });
+        const Roledata = await newRole.save();
+        res.json(Roledata);
+        logger.info('This is a add role of Admin')
     } catch (error) {
+        logger.debug('There is a error in add role of Admin')
         res.json({ message: error.message });
     }
 }
@@ -287,8 +284,10 @@ const getRoles = async (req, res) => {
     try {
         if (roles.length == 0) return res.status(404).json({ msg: "No roles Found" })
 
-        return res.status(200).json(roles);
+        return res.status(200).json(roles),
+        logger.info('This is a of Get roles of Admin')
     } catch (error) {
+        logger.debug('There is a error in Get Roles of Admin')
         res.json({ message: error });
     }
 }
@@ -303,10 +302,12 @@ const deleteRole = async (req, res) => {
             if (err) {
                 return res.status(403).json(err)
             }
-            return res.status(404).json({ "message": "role not found" })
+            return res.status(404).json({ "message": "role not found" }),
+            logger.info('This is a of  delete role of Admin')
         })
 
     } catch (error) {
+        logger.debug('There is a error in Delete Roles of Admin')
         return new Error(error)
     }
 }
@@ -322,9 +323,11 @@ const getAsset = async (req, res) => {
         const getassets = await Asset.find({}).limit(limit * 1).skip((page - 1) * limit).exec()
         if (getassets.length == 0) return res.status(404).json({ msg: "No assets Found" })
 
-        return res.status(200).json(getassets)
+        return res.json(getassets),
+        logger.info('This is a of Get Asset of Admin')
     } catch (error) {
         console.log(error)
+        logger.debug('There is a error in Get Asset of Admin')
         res.json({ message: error.message });
     }
 }
@@ -333,20 +336,14 @@ const getAsset = async (req, res) => {
 const addAsset = async (req, res) => {
     try {
 
-        // convert any upper case letters to lower before sending to database
-        req.body = utils.lowercasedata(req.body)
+        const assetlocation = Location.find()
 
         const newAasset = new Asset(req.body)
-        newAasset.save((err,result)=>{
-            if(!err){
-                return res.status(201).json({msg: "asset created successfully"});
-            }
-            if(err){
-                return res.status(501).json({msg: "an error occured, try again"});
-            }
-        });
-
+        const assetData = await newAasset.save();
+        res.status(201).json(assetData);
+        logger.info('This is a of Add Asset of Admin')
     } catch (error) {
+        logger.debug('There is a error in Add Asset of Admin')
         res.json({ message: error.message });
     }
 }
@@ -361,9 +358,11 @@ const deleteAsset = async (req, res) => {
             if (err) {
                 return res.status(403).json(err)
             }
-            return res.status(404).json({ "message": "asset not found" })
+            return res.status(404).json({ "message": "asset not found" }),
+            logger.info('This is a of Delete Asset of Admin')
         })
     } catch (error) {
+        logger.debug('There is a error in Delete Asset of Admin')
         return new Error(error)
     }
 }
@@ -383,19 +382,12 @@ const addAssetCategory = async (req, res) => {
             req.body.asset_list = udata
         }
 
-        // convert any upper case letters to lower before sending to database
-        req.body = utils.lowercasedata(req.body)
-
         const addassetcategory = new assetsconfig(req.body)
-        addassetcategory.save((err,result)=>{
-            if(!err){
-                return res.status(201).json({msg: "category created successfully"});
-            }
-            if(err){
-                return res.status(501).json({msg: "an error occured, try again"});
-            }
-        })
+        const assetcategorydata = await addassetcategory.save()
+        res.status(201).json(assetcategorydata)
+        logger.info('This is a of Add Asset Category of Admin')
     } catch (error) {
+        logger.debug('There is a error in Add Asset Category of Admin')
         res.json({ message: error.message });
     }
 }
@@ -416,7 +408,9 @@ const getAssetCategory = async (req, res) => {
         if (getassetcategory.length == 0) return res.status(404).json({ msg: "assetcategory not found" })
 
         res.status(200).json(getassetcategory)
+        logger.info('This is a of Get Asset Category of Admin')
     } catch (error) {
+        logger.debug('There is a error in Get Asset Category of Admin')
         return new Error(error)
     }
 }
@@ -458,25 +452,17 @@ const updateAssetCategory = async (req, res) => {
                         "asset_list": req.body.asset_list
                     }
                 }, { new: true })
-
-                // convert any upper case letters to lower before sending to database
-                req.body = utils.lowercasedata(req.body)
-
-                updateassetcategory.save((err,result)=>{
-                    if(!err){
-                        return res.status(200).json({msg: "category updated successfully"});
-                    }
-                    if(err){
-                        return res.status(501).json({msg: "an error occured, try again"});
-                    }
-                });
-                
+                console.log(updateassetcategory)
+                const uac = await updateassetcategory.save();
+                return res.status(200).json(uac)
             }
             return res.status(422).json({ msg: "asset list already exits" })
         }
-        return res.status(400).json({ msg: "request body cannot be empty" })
+        return res.status(400).json({ msg: "request body cannot be empty" }),
+        logger.info('This is a of Update Asset Category of Admin')
 
     } catch (error) {
+        logger.debug('There is a error in Update Asset Cateogory of Admin')
         return new Error(error)
     }
 }
@@ -491,9 +477,11 @@ const deleteAssetCategory = async (req, res) => {
             if (err) {
                 return res.status(403).json(err)
             }
-            return res.status(404).json(" asset category not found")
+            return res.status(404).json(" asset category not found"),
+            logger.debug('This is a of Delte Asset of Category of Admin')
         })
     } catch (error) {
+        logger.debug('There is a error in Delete Asset Category of Admin')
         return new Error(error)
     }
 }
@@ -503,19 +491,12 @@ const deleteAssetCategory = async (req, res) => {
 // add machine
 const addMachine = async (req, res) => {
     try {
-        // convert any upper case letters to lower before sending to database
-        req.body = utils.lowercasedata(req.body)
-
         const newmachine = new machinedata(req.body)
-        newmachine.save((err,result)=>{
-            if(!err){
-                return res.status(201).json({msg: "machine created successfully"});
-            }
-            if(err){
-                return res.status(501).json({msg: "an error occured, try again"});
-            }
-        })
+        const Nmachinedata = await newmachine.save()
+        res.status(201).json(Nmachinedata)
+        logger.info('This is a of Add Machine of Admin')
     } catch (error) {
+        logger.debug('There is a error in Add Machine of Admin')
         return new Error(error)
     }
 }
@@ -530,8 +511,10 @@ const getMachine = async (req, res) => {
         const totalcount = await machinedata.count({})
         if (mdata.length === 0) return res.status(404).json({ message: "No machines found" })
 
-        return res.status(200).json({ machines: mdata, total: totalcount })
+        return res.status(200).json({ machines: mdata, total: totalcount }),
+        logger.info('This is a of Get Machine of Admin')
     } catch (error) {
+        logger.debug('There is a error in Get Machine of Admin')
         return new Error(error)
     }
 }
@@ -548,7 +531,9 @@ const deleteMachine = async (req, res) => {
             }
             res.status(404).json({ message: "machine not found" })
         })
+        logger.info('This is a of Delete Machine of Admin')
     } catch (error) {
+        logger.debug('There is a error in Delete Machine of Admin')
         return new Error(error)
     }
 }
@@ -557,21 +542,14 @@ const deleteMachine = async (req, res) => {
 const updateMachine = async (req, res) => {
     try {
         if (req.params.id) {
-            // convert any upper case letters to lower before sending to database
-            req.body = utils.lowercasedata(req.body)
-
             const machineupdate = await machinedata.findByIdAndUpdate({ _id: req.params.id }, { $set: req.body }, { new: true })
-            machineupdate.save((err,result)=>{
-                if(!err){
-                    return res.status(200).json({msg: "machine updated successfully"});
-                }
-                if(err){
-                    return res.status(501).json({msg: "an error occured, try again"});
-                }
-            })
+            const Mdata = await machineupdate.save()
+            res.status(200).json({ data: Mdata })
         }
         res.json({ message: "machineid is required" })
+        logger.info('This is Update Machine of Admin')
     } catch (error) {
+        logger.debug('There is a error in Update Machine of Admin')
         return new Error(error)
     }
 }
@@ -599,7 +577,9 @@ const getSchedular = async (req, res) => {
         if (total == 0) return res.status(404).json({ msg: "no schedules found" })
 
         res.status(200).json({ Schedules: schedular, total: total })
+        logger.info('This is Get Schedulers of Admin')
     } catch (error) {
+        logger.debug('There is a error in Get Schedulers of Admin')
         return new Error(error)
     }
 }
@@ -615,8 +595,10 @@ const getOneSchedule = async (req, res) => {
 
             res.status(200).json({ Schedule: schedular })
         }
-        return res.status(400).json({ msg: "id cannot be empty" })
+        return res.status(400).json({ msg: "id cannot be empty" }),
+        logger.info('This is Get One Schedule of Admin')
     } catch (error) {
+        logger.debug('There is a error in Get One Schedule of Admin')
         return new Error(error)
     }
 }
@@ -651,8 +633,9 @@ const addSchedular = async (req, res) => {
             } else return res.status(404).json({ msg: "checklist not found" })
 
         } else return res.status(400).json({ msg: "must include checklist " })
-
+        logger.info('This is Add Scheduler of Admin')
     } catch (error) {
+        logger.debug('There is a error in Add Scheduler of Admin')
         return new Error(error)
     }
 }
@@ -669,8 +652,10 @@ const deleteSchedular = async (req, res) => {
             if (err) return new Error(err)
             if (result) return res.status(200).json({ msg: "schedular deleted successfully" })
         })
-        return res.status(404).json({ msg: "schedular not found" })
+        return res.status(404).json({ msg: "schedular not found" }),
+        logger.info('This is Delete Scheduler of Admin')
     } catch (error) {
+        logger.debug('There is a error in Delete Scheduler of Admin')
         return new Error(error)
     }
 }
@@ -726,19 +711,12 @@ const addLocation = async (req, res) => {
             }
         }
 
-        // convert any upper case letters to lower before sending to database
-        req.body = utils.lowercasedata(req.body)
-
         const newLocation = new Location(req.body)
-        newLocation.save((err,result)=>{
-            if(!err){
-                return res.status(201).json({msg: "location created successfully"});
-            }
-            if(err){
-                return res.status(501).json({msg: "an error occured, try again"});
-            }
-        })
+        const locationdata = await newLocation.save()
+        res.status(201).json({ "new Location": locationdata })
+        logger.info('This is Add location of Admin')
     } catch (error) {
+        logger.debug('There is a error in Add Location of Admin')
         return new Error(error)
     }
 }
@@ -774,8 +752,9 @@ const getLocation = async (req, res) => {
         const totalcount = await Location.count({})
         if (totalcount === 0) return res.status(404).json({ message: "no locations found" })
         res.status(200).json({ locations: getlocations, total: totalcount })
+        logger.info('This is Get Location of Admin')
     } catch (error) {
-
+        logger.debug('There is a error in Get Location of Admin')
     }
 }
 
@@ -784,7 +763,7 @@ const updateLocation = async (req, res) => {
     try {
         if (req.params.id) {
 
-            if (req.body.subdivision) { 
+            if (req.body.subdivision) {
                 let subdivisions = req.body.subdivision
 
                 if (subdivisions.length >= 2) {
@@ -831,23 +810,16 @@ const updateLocation = async (req, res) => {
                     }
                 }
             }
-            // convert any upper case letters to lower before sending to database
-            req.body = utils.lowercasedata(req.body)
 
             const updatelocation = await Location.findByIdAndUpdate({ _id: req.params.id }, { $push: req.body }, { new: true })
-            const updatedata = await updatelocation.save((err,result)=>{
-                if(!err){
-                    return res.status(200).json({msg: "location updated successfully"});
-                }
-                if(err){
-                    return res.status(501).json({msg: "an error occured, try again"});
-                }
-            })
+            const updatedata = await updatelocation.save()
+            res.status(200).json({ msg: "location updated successfully" })
         }
         res.status(400).json({ message: "location id is required" })
-
+        logger.info('This is Update Location of Admin')
 
     } catch (error) {
+        logger.debug('There is a error in Update Location of Admin')
         return new Error(error)
     }
 }
@@ -864,7 +836,9 @@ const deleteLocation = async (req, res) => {
             }
             res.status(404).json({ message: "location not found" })
         })
+        logger.info('This is Delete Location of Admin')
     } catch (error) {
+        logger.debug('There is a error in Delete Location of Admin')
         return new Error(error)
     }
 }
@@ -890,9 +864,11 @@ const getChecklist = async (req, res) => {
 
         if (total == 0) return res.status(404).json({ msg: "no checklist found" })
 
-        return res.status(200).json({ checklist: getchecklist, total: total })
+        return res.status(200).json({ checklist: getchecklist, total: total }),
+        logger.info('This is Get Checklist of Admin')
 
     } catch (error) {
+        logger.debug('There is a error in Get Checklist of Admin')
         return new Error(error)
     }
 }
@@ -907,8 +883,10 @@ const getOneChecklist = async (req, res) => {
 
             return res.status(200).json({ checklist: getonechecklist })
         }
-        return res.status(400).json({ msg: "id cannot be empty" })
+        return res.status(400).json({ msg: "id cannot be empty" }),
+        logger.info('This is Get One Checklist of Admin')
     } catch (error) {
+        logger.debug('There is a error in Get One Checklist of Admin')
         return new Error(error)
     }
 }
@@ -983,9 +961,6 @@ const addChecklist = async (req, res) => {
 
                 }
 
-                // convert any upper case letters to lower before sending to database
-                req.body = utils.lowercasedata(req.body)
-
                 // finally create the checklist and save
                 const newchecklist = new checklist(req.body)
                 // add checklist id to new tasklist after saving the checklist data 
@@ -1001,7 +976,7 @@ const addChecklist = async (req, res) => {
                             await updatetasklist.save()
                         }
 
-                        return res.status(201).json({ msg: "checklist created successfully" })
+                        return res.status(201).json({ msg: "checklist added successfully" })
                     }
 
                     if (err) {
@@ -1011,12 +986,72 @@ const addChecklist = async (req, res) => {
 
                 })
 
+
             } else return res.status(400).json({ msg: "machine name cannot be empty" })
 
         } else return res.status(400).json({ msg: "checklist name cannot be empty" })
-
+        logger.info('This is Add Checklist of Admin')
     } catch (error) {
+        logger.debug('There is a error in Add Checklist of Admin')
         return new Error(error)
     }
 }
-module.exports = { getUsers, addUser, updateUser, deleteUser, addRole, getRoles, deleteRole, getAsset, addAsset, deleteAsset, addAssetCategory, getAssetCategory, deleteAssetCategory, updateAssetCategory, addMachine, getMachine, deleteMachine, updateMachine, getSchedular, getOneSchedule, addSchedular, updateSchedular, deleteSchedular, addLocation, getLocation, updateLocation, deleteLocation, getChecklist, getOneChecklist, addChecklist }
+
+//export ticket data
+
+const exportTicket = async(req , res)=>{
+    try {
+        const startDate = moment(new Date()).startOf('week').toDate();
+        const endDate = moment(new Date()).startOf('day').toDate();
+
+        const workbook = new excelJS.Workbook();
+        const worksheet = workbook.addWorksheet(`Ticket Report`)
+        
+        worksheet.columns = [
+            { header:"S no.", key:"s_no" },
+            { header:"Asset Name", key:"asset_name" },
+            { header:"Subject", key:"subject" },
+            { header:"Description", key:"description" },
+            { header:"Accepted", key:"accepted" },
+            { header:"Accepted By", key:"accepted_by" },
+            { header:"Company", key:"company" },
+            { header:"Status", key:"status" },
+            { header:"Escalated", key:"escalated" },
+            { header:"Escalated Reason", key:"escalated_reason" },
+            { header:"Ticket Type", key:"ticket-type" },
+            { header:"Location", key:"location" },
+            { header:"Open At", key:"open_at" },
+            { header:"Closed At", key:"close_at" },
+    
+        ];
+        
+        let counter = 1;
+        const ticketData = await Ticket.find({open_at : {$gte : startDate , $lte : endDate}});
+        ticketData.forEach((Ticket) => {
+            Ticket.s_no = counter; 
+            worksheet.addRow(Ticket);
+            counter++;
+        });
+        
+        worksheet.getRow(1).eachCell((cell) => {
+            cell.font = {bold:true};
+        });
+        res.setHeader(
+            "Content-Type",
+            "application/vnd.openxmlformats-officedocument.spreadsheatml.sheet"
+        );
+        res.setHeader("Content-Disposition",`attachment; filename=Ticket-Report-${dateObject.getDate()}-${dateObject.getMonth()}-${dateObject.getUTCFullYear()}.xlsx`);
+        return workbook.xlsx.write(res).then(()=>{
+            logger.info('These is export Ticket of Admin');
+            res.status(200);
+
+        });
+        
+    
+    } catch (error) {
+        logger.debug("There is a error in export Ticket of Admin")
+        console.log(error.message);
+    }
+    }
+
+module.exports = { getUsers, addUser, updateUser, deleteUser, addRole, getRoles, deleteRole, getAsset, addAsset, deleteAsset, addAssetCategory, getAssetCategory, deleteAssetCategory, updateAssetCategory, addMachine, getMachine, deleteMachine, updateMachine, getSchedular, getOneSchedule, addSchedular, updateSchedular, deleteSchedular, addLocation, getLocation, updateLocation, deleteLocation, getChecklist, getOneChecklist, addChecklist , exportTicket }

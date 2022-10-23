@@ -1,4 +1,3 @@
-
 var admin = require("firebase-admin");
 
 // import json file provided by firebase admin storage
