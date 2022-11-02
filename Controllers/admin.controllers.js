@@ -999,10 +999,12 @@ const addChecklist = async (req, res) => {
 
 //export ticket data
 
-const exportTicket = async(req , res)=>{
+const managementReport = async(req , res)=>{
     try {
-        const startDate = moment(new Date()).startOf('week').toDate();
-        const endDate = moment(new Date()).startOf('day').toDate();
+        const firstdate =  new Date(req.body.firstdate)
+        const seconddate = new Date(req.body.seconddate)
+        const startDate = new Date(`${firstdate}`)
+        const endDate =   new Date(`${seconddate}`)
 
         const workbook = new excelJS.Workbook();
         const worksheet = workbook.addWorksheet(`Ticket Report`)
@@ -1054,4 +1056,4 @@ const exportTicket = async(req , res)=>{
     }
     }
 
-module.exports = { getUsers, addUser, updateUser, deleteUser, addRole, getRoles, deleteRole, getAsset, addAsset, deleteAsset, addAssetCategory, getAssetCategory, deleteAssetCategory, updateAssetCategory, addMachine, getMachine, deleteMachine, updateMachine, getSchedular, getOneSchedule, addSchedular, updateSchedular, deleteSchedular, addLocation, getLocation, updateLocation, deleteLocation, getChecklist, getOneChecklist, addChecklist , exportTicket }
+module.exports = { getUsers, addUser, updateUser, deleteUser, addRole, getRoles, deleteRole, getAsset, addAsset, deleteAsset, addAssetCategory, getAssetCategory, deleteAssetCategory, updateAssetCategory, addMachine, getMachine, deleteMachine, updateMachine, getSchedular, getOneSchedule, addSchedular, updateSchedular, deleteSchedular, addLocation, getLocation, updateLocation, deleteLocation, getChecklist, getOneChecklist, addChecklist , managementReport }
