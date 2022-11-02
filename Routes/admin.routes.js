@@ -133,6 +133,6 @@ routers.get('/checklist/:id', checkAuth, checkRole(config.ROLE.ADMIN), adminCont
 routers.post('/add_checklist', checkAuth, checkRole(config.ROLE.ADMIN), adminControllers.addChecklist)
 
 // export ticket
-routers.get('/export-Ticket', checkAuth, checkRole(config.ROLE.ADMIN), adminControllers.exportTicket)
+routers.get('/managementreport', checkAuth, checkRole(config.ROLE.ADMIN), adminControllers.managementReport)
 
 module.exports = routers;
